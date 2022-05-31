@@ -16,7 +16,6 @@ frontend = Blueprint(
     template_folder=os.path.abspath("./frontend"),
     url_prefix="/"
 )
-
 frontend.register_blueprint(page.app)
 
 ###################################
@@ -26,9 +25,7 @@ backend = Blueprint(
     "backend",
     __name__
 )
-
 backend.register_blueprint(user.app)
-
 
 ###################################
 #  サーバー
