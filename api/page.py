@@ -3,7 +3,7 @@
 """
 
 import os
-from flask import Blueprint, send_file, send_from_directory
+from flask import Blueprint, send_from_directory
 from utils.get_path_type import get_path_type
 
 app = Blueprint("user", __name__)
