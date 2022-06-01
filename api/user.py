@@ -20,14 +20,20 @@ class User(Resource):
             }), 200)
 
         users = []
+        # データベースに接続
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
             collection = db.test
-            users = collection.find()
-            print(users)
+            cursor = collection.find()
+
+            # 全ての要素を取得
+            for user in cursor:
+                user["id"] = str(user["_id"])
+                del user["_id"]
+                users.append(user)
 
         return make_response(jsonify({
-            "users": users()
+            "users": users
         }), 200)
 
 api.add_resource(User, "/users", "/users/<user_id>")
