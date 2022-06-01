@@ -3,3 +3,4 @@ __pycache__
 /frontend/
 /venv/
 /logging.txt
+/secret.yaml

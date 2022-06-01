@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, Flask
 from flask_cors import CORS
 
+import common
 import logger
 import api.page as page
 import api.user as user
@@ -31,6 +32,8 @@ backend.register_blueprint(user.app)
 #  サーバー
 ###################################
 app = Flask(__name__)
+# JSONを日本語でも表現できるようにする
+app.config["JSON_AS_ASCII"] = False
 # CORSを全面許可
 CORS(app, supports_credentials=True)
 # フロントエンドとバックエンドを結合
