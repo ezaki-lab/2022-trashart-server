@@ -20,13 +20,14 @@ frontend = Blueprint(
 frontend.register_blueprint(page.app)
 
 ###################################
-#  バックエンド
+#  API
 ###################################
-backend = Blueprint(
-    "backend",
-    __name__
+api = Blueprint(
+    "api",
+    __name__,
+    url_prefix="/api"
 )
-backend.register_blueprint(user.app)
+api.register_blueprint(user.app)
 
 ###################################
 #  サーバー
@@ -36,9 +37,9 @@ app = Flask(__name__)
 app.config["JSON_AS_ASCII"] = False
 # CORSを全面許可
 CORS(app, supports_credentials=True)
-# フロントエンドとバックエンドを結合
+# Blueprint を結合
 app.register_blueprint(frontend)
-app.register_blueprint(backend)
+app.register_blueprint(api)
 
 if __name__ == "__main__":
     # APIサーバーを起動
