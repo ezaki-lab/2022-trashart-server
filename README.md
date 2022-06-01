@@ -7,7 +7,7 @@
 [Webアプリ（フロントエンド）のリポジトリはこちらから](https://github.com/ezaki-lab/2022-trashart)
 
 ## URL
-```https://ezaki-lab.cloud/~trashart/```
+```https://ezaki-lab.cloud/~trashart/api/```
 
 ## システム概要
 「MARINE TRASHART」はアート作品を作るために浜辺のごみを拾うことによって、ごみ問題解決に繋げることを支援します。
