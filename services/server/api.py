@@ -9,8 +9,7 @@ import api.user as user
 
 app = Blueprint(
     "api",
-    __name__,
-    url_prefix="/api"
+    __name__
 )
 
 app.register_blueprint(root.app)
