@@ -1,9 +1,9 @@
 import common
 import logger
-from services.server import create_server, socketio
+from services.server import create_app, socketio
 
-server = create_server(debug=False)
+app = create_app(debug=False)
 
 if __name__ == "__main__":
     # サーバーを起動
-    socketio.run(server)
+    socketio.run(app)

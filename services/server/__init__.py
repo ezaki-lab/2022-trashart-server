@@ -7,7 +7,7 @@ from . import api
 
 socketio = SocketIO(async_mode=None, cors_allowed_origins="*")
 
-def create_server(debug=False) -> Flask:
+def create_app(debug=False) -> Flask:
     app = Flask(__name__)
     app.debug = debug
     # JSONを日本語でも表現できるようにする
