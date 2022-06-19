@@ -14,8 +14,8 @@ CORS(app, supports_credentials=True)
 # Blueprint を結合
 app.register_blueprint(api.app)
 # WebSocketを準備
-socketio = SocketIO(app, async_mode="threading")
+socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
 
 if __name__ == "__main__":
     # APIサーバーを起動
-    socketio.run(app, debug=False)
+    socketio.run(app, debug=True)
