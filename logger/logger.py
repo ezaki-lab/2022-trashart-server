@@ -4,7 +4,6 @@
 
 from functools import wraps
 import logging
-
 from flask import abort, request
 
 def logger(func):

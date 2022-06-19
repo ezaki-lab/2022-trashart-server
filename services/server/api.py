@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, make_response
 
 import api.root as root
 import api.user as user
+import api.craft as craft
 
 app = Blueprint(
     "api",
@@ -14,9 +15,11 @@ app = Blueprint(
 
 app.register_blueprint(root.app)
 app.register_blueprint(user.app)
+app.register_blueprint(craft.app)
 
 ###################################
 #  Abort
+#  TODO: 以下が反応しないので修正する
 ###################################
 @app.errorhandler(400)
 def bad_request(e):
