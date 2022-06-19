@@ -11,3 +11,6 @@
 
 ## システム概要
 「MARINE TRASHART」はアート作品を作るために浜辺のごみを拾うことによって、ごみ問題解決に繋げることを支援します。
+
+## 起動コマンド
+```gunicorn -b 0.0.0.0:{PORT} -k eventlet main:app --reload```
