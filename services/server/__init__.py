@@ -6,9 +6,9 @@ import common
 from . import api
 
 socketio = SocketIO(async_mode=None, cors_allowed_origins="*")
+app = Flask(__name__)
 
 def create_app(debug=False) -> Flask:
-    app = Flask(__name__)
     app.debug = debug
     # JSONを日本語でも表現できるようにする
     app.config["JSON_AS_ASCII"] = False
@@ -21,6 +21,8 @@ def create_app(debug=False) -> Flask:
     app.register_blueprint(api.app)
     # Socket.ioハンドラー
     from . import ws
+    # Abort
+    from . import abort
 
     # Socket.ioのサーバーとして登録
     socketio.init_app(app)
