@@ -10,9 +10,10 @@ from pymongo import MongoClient
 from logger import logger
 from common import config
 from services.inspector import content_type
-import services.craft.api as service
+import services.crafting.api as service
+from utils.base64_to_file import Base64_to_file
 
-app = Blueprint("craft", __name__)
+app = Blueprint("crafting", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
 class Crafting(Resource):
@@ -28,6 +29,8 @@ class CraftingBlueprint(Resource):
     @logger
     @content_type("application/json")
     def put(self, craft_id=None):
+        args = service.blueprint_put_parser.parse_args()
+
         # データベースに接続
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
@@ -36,15 +39,17 @@ class CraftingBlueprint(Resource):
             if data == None:
                 abort(404)
 
-            print(data)
+        # Base64形式で表現された画像をファイルに書き出す
+        path = None
+        try:
+            converter = Base64_to_file(args["data"], "./storage/blueprints/")
+            path = converter.save()
+        except Exception as e:
+            abort(400)
 
-            # # 全ての要素を取得
-            # for user in cursor:
-            #     user["id"] = str(user["_id"])
-            #     del user["_id"]
-            #     users.append(user)
-
-        return make_response(jsonify({}), 200)
+        return make_response(jsonify({
+            "path": path
+        }), 200)
 
 api.add_resource(Crafting, "/craftings", "/craftings/<craft_id>")
 api.add_resource(CraftingBlueprint, "/craftings/<craft_id>/blueprint")
