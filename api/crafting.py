@@ -21,20 +21,28 @@ class Crafting(Resource):
     @content_type("application/json")
     def post(self):
         args = service.post_parser.parse_args()
-        print(args["base_id"])
 
-        return make_response(jsonify({}), 200)
+        # 製作IDを新規作成
+        crafting_id = None
+        with MongoClient(config["DATABASE_URL"]) as client:
+            db = client.trashart_db
+            result = db.craftings.insert_one({"base_id": args["base_id"]})
+            crafting_id = str(result.inserted_id)
+
+        return make_response(jsonify({
+            "id": crafting_id
+        }), 200)
 
 class CraftingBlueprint(Resource):
     @logger
     @content_type("application/json")
-    def put(self, craft_id=None):
+    def put(self, crafting_id=None):
         args = service.blueprint_put_parser.parse_args()
 
-        # データベースに接続
+        # 製作IDが存在しなければ404を返す
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
-            data = db.craftings.find_one(ObjectId(craft_id))
+            data = db.craftings.find_one(ObjectId(crafting_id))
 
             if data == None:
                 abort(404)
@@ -51,5 +59,5 @@ class CraftingBlueprint(Resource):
             "path": path
         }), 200)
 
-api.add_resource(Crafting, "/craftings", "/craftings/<craft_id>")
-api.add_resource(CraftingBlueprint, "/craftings/<craft_id>/blueprint")
+api.add_resource(Crafting, "/craftings", "/craftings/<crafting_id>")
+api.add_resource(CraftingBlueprint, "/craftings/<crafting_id>/blueprint")
