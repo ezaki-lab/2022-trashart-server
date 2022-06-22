@@ -12,6 +12,8 @@ def create_app(debug=False) -> Flask:
     app.debug = debug
     # JSONを日本語でも表現できるようにする
     app.config["JSON_AS_ASCII"] = False
+    # エラーハンドラーを有効
+    app.config["PROPAGATE_EXCEPTIONS"] = False
     # 通信を認証するための鍵
     app.config["SECRET_KEY"] = common.config["SECRET_KEY"]
     # CORSを全面許可

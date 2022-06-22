@@ -19,10 +19,13 @@ def logger(func):
             result = func(*args, **kwargs)
 
         except Exception as e:
-            print(
+            # 冒頭3桁が数字じゃなければ、エラーを記録
+            if not str(e)[:3].isdigit():
+                print(
                 "\n###################################\n#  ERROR\n###################################\n")
-            print(e)
-            logging.debug(e)
+                print(e)
+                logging.debug(e)
+
             abort(e.code)
 
         return result
