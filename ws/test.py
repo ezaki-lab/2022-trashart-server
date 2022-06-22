@@ -1,5 +1,5 @@
 """
-製作ソケット
+テストソケット (チャット)
 """
 
 from flask import request

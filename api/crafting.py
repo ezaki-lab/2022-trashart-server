@@ -2,6 +2,7 @@
 製作API
 """
 
+import os
 from flask import Blueprint, Flask, jsonify, make_response
 from flask_restful import Api, abort, Resource
 from bson.objectid import ObjectId
@@ -50,13 +51,13 @@ class CraftingBlueprint(Resource):
         # Base64形式で表現された画像をファイルに書き出す
         path = None
         try:
-            converter = Base64_to_file(args["data"], "./storage/blueprints/")
+            converter = Base64_to_file(args["data"], "storage/blueprints/")
             path = converter.save()
         except Exception as e:
             abort(400)
 
         return make_response(jsonify({
-            "path": path
+            "path": os.path.join(config["API_URL"], path)
         }), 200)
 
 api.add_resource(Crafting, "/craftings", "/craftings/<crafting_id>")
