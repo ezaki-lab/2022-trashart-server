@@ -57,7 +57,7 @@ class CraftingBlueprint(Resource):
             abort(400)
 
         return make_response(jsonify({
-            "path": os.path.join(config["API_URL"], path)
+            "url": os.path.join(config["API_URL"], path)
         }), 200)
 
 api.add_resource(Crafting, "/craftings", "/craftings/<crafting_id>")
