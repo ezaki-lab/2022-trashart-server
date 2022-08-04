@@ -1,0 +1,29 @@
+name: Deploy as development
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  web-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Sync files
+      uses: burnett01/rsync-deployments@5.2
+      with:
+        switches: -avzr --delete --exclude="__pycache__" --exclude=".git" --exclude=".github" --exclude=".gitignore" --exclude="storage" --exclude="venv" --exclude="secret.yaml" --include="" --filter=""
+        path: /
+        remote_path: ${{ secrets.REMOTE_PATH_DEV }}
+        remote_host: ${{ secrets.REMOTE_HOST }}
+        remote_port: ${{ secrets.REMOTE_PORT }}
+        remote_user: ${{ secrets.REMOTE_USER }}
+        remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        remote_key_pass: ${{ secrets.SSH_PRIVATE_KEY_PASSPHRASE }}
