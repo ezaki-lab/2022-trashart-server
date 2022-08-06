@@ -8,7 +8,6 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 import os
-from datetime import datetime
 from shutil import copyfile
 from logger import logger
 from common import config
