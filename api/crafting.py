@@ -35,6 +35,8 @@ class Crafting(Resource):
                 "base_id": args["base_id"]
             })
 
+        crafting_id_spare = generate_str(24, hex_only=True)
+
         # ベースとなる作品があるなら、設計図をコピー
         if args["base_id"] != None and args["base_id"] != "":
             base_blueprint_path = "storage/blueprints/" + args["base_id"] + ".webp"
@@ -47,7 +49,8 @@ class Crafting(Resource):
         return make_response(jsonify({
             "id": crafting_id,
             "create_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "favorite":"イチゴ"
+            "favorite":"イチゴ",
+            "spare_id": crafting_id_spare
         }), 200)
 
 class CraftingBlueprint(Resource):
