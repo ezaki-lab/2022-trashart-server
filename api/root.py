@@ -11,5 +11,5 @@ app = Blueprint("root", __name__)
 def root():
     return make_response(jsonify({
         "message": "MARINE TRASHART",
-        "time": datetime.now().strftime('%Y年%m月%d日 %H:%M:%S'))
+        "time": datetime.now().strftime('%Y年%m月%d日 %H:%M:%S')
     }), 200)
