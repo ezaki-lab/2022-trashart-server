@@ -37,6 +37,8 @@ class Crafting(Resource):
 
         crafting_id_spare = generate_str(24, hex_only=True)
 
+        print(0 / 0)
+
         # ベースとなる作品があるなら、設計図をコピー
         if args["base_id"] != None and args["base_id"] != "":
             base_blueprint_path = "storage/blueprints/" + args["base_id"] + ".webp"
