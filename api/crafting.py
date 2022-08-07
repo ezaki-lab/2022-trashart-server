@@ -46,7 +46,8 @@ class Crafting(Resource):
 
         return make_response(jsonify({
             "id": crafting_id,
-            "create_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "create_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "favorite":"イチゴ"
         }), 200)
 
 class CraftingBlueprint(Resource):
