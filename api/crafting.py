@@ -44,7 +44,8 @@ class Crafting(Resource):
                 abort(404)
 
         return make_response(jsonify({
-            "id": crafting_id
+            "id": crafting_id,
+            "create_at": "時刻"
         }), 200)
 
 class CraftingBlueprint(Resource):
