@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 import os
+from datetime import datetime
 from shutil import copyfile
 from logger import logger
 from common import config
@@ -45,7 +46,7 @@ class Crafting(Resource):
 
         return make_response(jsonify({
             "id": crafting_id,
-            "create_at": "時刻"
+            "create_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }), 200)
 
 class CraftingBlueprint(Resource):
