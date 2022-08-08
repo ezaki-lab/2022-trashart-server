@@ -16,6 +16,8 @@ api = Api(app)
 class User2(Resource):
     @logger
     def get(self):
+        users = []
+
         # データベースに接続し、ユーザーを取得
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
@@ -23,11 +25,11 @@ class User2(Resource):
             cursor = coll.find()
 
             for user in cursor:
-                print(user["name"])
+                users.append(user["name"])
 
         # ユーザー情報を返す
         return make_response(jsonify({
-            "message": "OKだよ"
+            "users": users
         }), 200)
 
 api.add_resource(User2, "/user2")
