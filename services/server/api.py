@@ -8,6 +8,7 @@ import api.root as root
 import api.user as user
 import api.crafting as crafting
 import api.storage as storage
+import api.user2 as user2
 
 app = Blueprint(
     "api",
@@ -18,3 +19,4 @@ app.register_blueprint(root.app)
 app.register_blueprint(user.app)
 app.register_blueprint(crafting.app)
 app.register_blueprint(storage.app)
+app.register_blueprint(user2.app)
