@@ -25,7 +25,10 @@ class User2(Resource):
             cursor = coll.find()
 
             for user in cursor:
-                users.append(user["name"])
+                if "name" in user:
+                    users.append(user["name"])
+                else:
+                    users.append("そんなもんないわ")
 
         # ユーザー情報を返す
         return make_response(jsonify({
