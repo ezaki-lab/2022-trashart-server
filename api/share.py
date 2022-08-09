@@ -24,6 +24,13 @@ class Share(Resource):
     def put(self, crafting_id=None):
         args = service.put_parser.parse_args()
 
+        with MongoClient(config["DATABASE_URL"]) as client:
+            db = client.trashart_db
+            db.arts.insert_one({
+                "_id": ObjectId(crafting_id),
+                "trash": args["trash"]
+            })
+
         # Base64形式で表現された画像をファイルに書き出す
         try:
             converter = Base64_to_file(args["image"])
