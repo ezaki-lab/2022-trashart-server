@@ -9,7 +9,7 @@ import api.user as user
 import api.crafting as crafting
 import api.storage as storage
 import api.user2 as user2
-import api.share as sahre
+import api.share as share
 
 app = Blueprint(
     "api",
