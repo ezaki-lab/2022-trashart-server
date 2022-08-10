@@ -24,9 +24,10 @@ class Test(Resource):
 
         return "image.png"
 
-        with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            client.trashart_db.insert_one{()}
+        # 以下の文で構文エラーが発生していて、他のAPIに影響しているから、一時的にコメントアウト
+        # with MongoClient(config["DATABASE_URL"]) as client:
+        #     db = client.trashart_db
+        #     client.trashart_db.insert_one{()}
 
 api.add_resource(Test, "/test")
 
