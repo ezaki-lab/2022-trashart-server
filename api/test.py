@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_restful import Api, abort, Resource
-from base64_to_file import Base64_to_file
+from utils.base64_to_file import Base64_to_file
 
 app = Flask(__name__)
 api = Api(app)
