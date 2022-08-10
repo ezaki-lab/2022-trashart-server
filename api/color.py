@@ -3,7 +3,7 @@
 """
 
 import base64
-from flask import Flask, jsonify, make_response, request
+from flask import Blueprint, Flask, jsonify, make_response, request
 from flask_restful import Api, abort, Resource
 from utils.base64_to_file import Base64_to_file
 from utils.random import generate_str
@@ -11,8 +11,8 @@ from utils.change_color import change_color
 from common import config
 
 
-app = Flask(__name__)
-api = Api(app)
+app = Blueprint("color", __name__)
+api = Api(app, errors=Flask.errorhandler)
 
 class Color(Resource):
     def post():
@@ -43,6 +43,3 @@ class Color(Resource):
         }), 200)
 
 api.add_resource(Color, "/color")
-
-if __name__ == "__main__":
-    app.run(debug=True)

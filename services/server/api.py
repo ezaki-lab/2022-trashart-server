@@ -14,5 +14,5 @@ app = Blueprint(
 # APIフォルダーのファイルを全てインポート
 for path in glob("api/*.py"):
     name = path.split("/")[1].split(".")[0]
-    module = importlib.import_module(f"api.{name}")
-    app.register_blueprint(module.app)
+    mod = importlib.import_module(f"api.{name}")
+    app.register_blueprint(mod.app)

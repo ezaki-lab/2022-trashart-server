@@ -1,9 +1,9 @@
-from flask import Flask, request
+from flask import Blueprint, Flask, request
 from flask_restful import Api, abort, Resource
 from utils.base64_to_file import Base64_to_file
 
-app = Flask(__name__)
-api = Api(app)
+app = Blueprint("test", __name__)
+api = Api(app, errors=Flask.errorhandler)
 
 class Test(Resource):
     def post(self):
@@ -30,6 +30,3 @@ class Test(Resource):
         #     client.trashart_db.insert_one{()}
 
 api.add_resource(Test, "/test")
-
-if __name__ == "__main__":
-    app.run(debug=True)
