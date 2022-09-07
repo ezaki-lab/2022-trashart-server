@@ -16,7 +16,7 @@ jobs:
     - name: Sync files
       uses: burnett01/rsync-deployments@5.2.1
       with:
-        switches: -avzr --delete --exclude="__pycache__" --exclude=".git" --exclude=".github" --exclude=".gitignore" --exclude="storage" --exclude="venv" --exclude="secret.yaml" --include="" --filter=""
+        switches: -avzr --delete --exclude="__pycache__" --exclude=".git" --exclude=".github" --exclude=".gitignore" --exclude="storage" --exclude="venv" --exclude="config.yaml" --exclude="secret.yaml" --include="" --filter=""
         path: /
         remote_path: ${{ secrets.REMOTE_PATH_DEV }}
         remote_host: ${{ secrets.REMOTE_HOST }}

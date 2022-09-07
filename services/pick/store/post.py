@@ -23,7 +23,7 @@ class MaterialSeparator:
 
         # データ部
         self.data: str = b64_splitted[1]
-        self.original_img: np.ndarray = np.array()
+        self.original_img: np.ndarray = np.array([])
         self.width: int = -1
         self.height: int = -1
         self.materials: list[Material] = []
@@ -34,7 +34,8 @@ class MaterialSeparator:
             np.frombuffer(
                 b64decode(self.data.encode()),
                 np.uint8
-            )
+            ),
+            cv2.IMREAD_ANYCOLOR
         )
 
         # 縦幅が 1000 になるようにリサイズ
@@ -42,7 +43,7 @@ class MaterialSeparator:
             self.original_img, 1000
         )
 
-        self.width, self.height = self.original_img.shape[:2]
+        self.height, self.width = self.original_img.shape[:2]
 
     def separate(self):
         if self.original_img.shape[0] == 0:
@@ -61,10 +62,10 @@ class MaterialSeparator:
         self.__store_from_contours(contours)
 
     def get_materials_info(self) -> list:
-        return list(map(lambda x: {
-            "id": x.id,
-            "area": x.area,
-            "image_url": os.path.join(config["API_URL"], "storage/materials/{}.webp".format(x.id))
+        return list(map(lambda m: {
+            "id": m.id,
+            "area": m.area,
+            "image_url": os.path.join(config["API_URL"], "storage/materials/{}.webp".format(m.id))
         }, self.materials))
 
     def __remove_noise_to_bin(self, img: np.ndarray) -> np.ndarray:
@@ -118,6 +119,10 @@ class MaterialSeparator:
         # 面積が大きい順にソート
         self.materials.sort(key=lambda item: item.area, reverse=True)
 
+        # 保存フォルダーがなければ作成
+        if not os.path.exists("storage/materials/"):
+            os.makedirs("storage/materials/")
+
         # 素材画像を保存
         for i, m in enumerate(self.materials):
             filepath = "storage/materials/{}.webp".format(m.id)
@@ -129,4 +134,5 @@ class MaterialSeparator:
 
     def __scale_to_height(self, img: np.ndarray, height: int) -> np.ndarray:
         h, w = img.shape[:2]
+        # TODO: 横, 縦 で正しくリサイズできるのかわからないので調べておく
         return cv2.resize(img, (int(w * height / h), height))
