@@ -50,4 +50,5 @@ class PickStore(Resource):
             "materials": separator.get_materials_info()
         }), 200)
 
+api.add_resource(PickSeparate, "/pick/separate")
 api.add_resource(PickStore, "/pick/store")
