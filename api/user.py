@@ -2,7 +2,7 @@
 ユーザーAPI
 """
 
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint, Flask, jsonify, make_response
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 
@@ -10,7 +10,7 @@ from logger import logger
 from common import config
 
 app = Blueprint("user", __name__)
-api = Api(app)
+api = Api(app, errors=Flask.errorhandler)
 
 class User(Resource):
     @logger

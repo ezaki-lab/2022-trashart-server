@@ -5,10 +5,6 @@ Abort
 from flask import jsonify, make_response
 from . import app
 
-@app.route("/test")
-def test():
-    return "OK?"
-
 @app.errorhandler(400)
 def bad_request(e):
     return make_response(jsonify({
