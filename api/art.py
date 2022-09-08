@@ -48,7 +48,7 @@ class Art(Resource):
 
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
-            data = db.craftings.find_one(ObjectId(art_id))
+            data = db.arts.find_one(ObjectId(art_id))
 
             if data == None:
                 abort(404)
