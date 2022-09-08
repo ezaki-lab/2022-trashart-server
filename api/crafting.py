@@ -4,6 +4,7 @@
 
 from flask import Blueprint, Flask, jsonify, make_response
 from flask_restful import Api, abort, Resource
+from flask_restful.reqparse import RequestParser
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
@@ -12,7 +13,6 @@ from shutil import copyfile
 from logger import logger
 from common import config
 from services.inspector import content_type
-import services.crafting.api as service
 from utils.base64_to_file import Base64_to_file
 from utils.random import generate_str
 
@@ -23,7 +23,9 @@ class Crafting(Resource):
     @logger
     @content_type("application/json")
     def post(self):
-        args = service.post_parser.parse_args()
+        parser = RequestParser()
+        parser.add_argument("base_id", type=str, location="json")
+        args = parser.parse_args()
 
         # 製作IDを新規作成
         crafting_id = generate_str(24, hex_only=True)
@@ -51,7 +53,9 @@ class CraftingBlueprint(Resource):
     @logger
     @content_type("application/json")
     def put(self, crafting_id=None):
-        args = service.blueprint_put_parser.parse_args()
+        parser = RequestParser()
+        parser.add_argument("data", required=True, type=str, location="json")
+        args = parser.parse_args()
 
         # 製作IDが存在しなければ404を返す
         with MongoClient(config["DATABASE_URL"]) as client:

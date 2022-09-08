@@ -3,17 +3,14 @@
 """
 from flask import Blueprint, Flask, jsonify, make_response
 from flask_restful import Api, abort, Resource
+from flask_restful.reqparse import RequestParser
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-import os
-from shutil import copyfile
 from logger import logger
 from common import config
 from services.inspector import content_type
-import services.share.api as service
 from utils.base64_to_file import Base64_to_file
-from utils.random import generate_str
 
 app = Blueprint("share", __name__)
 api = Api(app, errors=Flask.errorhandler)
@@ -22,7 +19,10 @@ class Share(Resource):
     @logger
     @content_type("application/json")
     def put(self, crafting_id=None):
-        args = service.put_parser.parse_args()
+        parser = RequestParser()
+        parser.add_argument("image", type=str, location="json")
+        parser.add_argument("trash", type=str, location="json")
+        args = parser.parse_args()
 
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db

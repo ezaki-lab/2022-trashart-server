@@ -4,11 +4,11 @@
 
 from flask import Blueprint, Flask, jsonify, make_response
 from flask_restful import Api, abort, Resource
+from flask_restful.reqparse import RequestParser
 
 from datetime import datetime
 from logger import logger
 from services.inspector import content_type
-import services.crafting.api as service
 from services.pick.store.post import MaterialSeparator
 from utils.base64_to_file import Base64_to_file
 
@@ -19,7 +19,9 @@ class PickSeparate(Resource):
     @logger
     @content_type("application/json")
     def post(self):
-        args = service.store_parser.parse_args()
+        parser = RequestParser()
+        parser.add_argument("data", required=True, type=str, location="json")
+        args = parser.parse_args()
 
         try:
             converter = Base64_to_file(args["data"])
@@ -34,7 +36,9 @@ class PickStore(Resource):
     @logger
     @content_type("application/json")
     def post(self):
-        args = service.store_parser.parse_args()
+        parser = RequestParser()
+        parser.add_argument("data", required=True, type=str, location="json")
+        args = parser.parse_args()
 
         separator = MaterialSeparator(args["data"])
         try:
