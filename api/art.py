@@ -37,6 +37,7 @@ class Art(Resource):
                         "width": row["width"],
                         "height": row["height"],
                         "cap_area": row["cap_area"],
+                        "attentions_num": row["attentions_num"],
                         "original_image_url": original_img_url,
                         "support_image_url": support_img_url
                     })
@@ -62,6 +63,7 @@ class Art(Resource):
                 "width": data["width"],
                 "height": data["height"],
                 "cap_area": data["cap_area"],
+                "attentions_num": data["attentions_num"],
                 "original_image_url": original_img_url,
                 "support_image_url": support_img_url
             }), 200)

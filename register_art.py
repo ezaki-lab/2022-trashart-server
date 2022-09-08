@@ -5,6 +5,7 @@
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 import cv2
+import os
 import numpy as np
 import shutil
 
@@ -18,6 +19,7 @@ arts
     width: Number
     height: Number
     cap_area: Number
+    attentions_num: Number
 """
 
 arts = [
@@ -39,6 +41,8 @@ arts = [
 ]
 
 def main():
+    print("アートを登録する作業を開始します。")
+
     with MongoClient(common.config["DATABASE_URL"]) as client:
         db = client.trashart_db
 
@@ -67,14 +71,6 @@ def main():
 
             cap_area = cv2.contourArea(contours[0])
 
-            db.arts.insert_one({
-                "_id": ObjectId(art_id),
-                "name": art[0],
-                "width": width,
-                "height": height,
-                "cap_area": cap_area
-            })
-
             ###################################
             #  製作補助画像
             ###################################
@@ -93,22 +89,52 @@ def main():
             hsv_max = np.array([0, 0, 255])
             mask = cv2.inRange(hsv, hsv_min, hsv_max)
 
-            contours, _ = cv2.findContours(
+            contours_att, _ = cv2.findContours(
                 mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            cv2.drawContours(art_support, contours, -1, color=(68, 68, 239, 127), thickness=-1)
+            # 作品の特徴部分を描画
+            cv2.drawContours(art_support, contours_att, -1, color=(68, 68, 239, 127), thickness=-1)
 
             hsv = cv2.cvtColor(art_bin, cv2.COLOR_BGR2HSV)
             hsv_min = np.array([0, 0, 255])
             hsv_max = np.array([0, 0, 255])
             mask = cv2.inRange(hsv, hsv_min, hsv_max)
 
-            contours, _ = cv2.findContours(
+            contours_bin, _ = cv2.findContours(
                 mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            cv2.drawContours(art_support, contours, -1, color=(68, 68, 239, 255), thickness=3)
+            # 作品の輪郭を描画
+            cv2.drawContours(art_support, contours_bin, -1, color=(68, 68, 239, 255), thickness=3)
 
             cv2.imwrite("storage/arts/" + art_id + "/art_support.webp", art_support)
+
+            ###################################
+            #  特徴パーツ画像
+            ###################################
+            save_folder = "storage/arts/" + art_id + "/attentions"
+            if not os.path.exists(save_folder):
+                os.makedirs(save_folder)
+
+            for i, cont in enumerate(contours_att):
+                x, y, w, h = cv2.boundingRect(cont)
+                img = np.zeros((art_att.shape[0], art_att.shape[1], 3), np.uint8)
+                cv2.drawContours(img, [cont], -1, color=(255, 255, 255), thickness=-1)
+                filepath = "%s/%03d.png" % (save_folder, i+1)
+                cv2.imwrite(filepath, img[y:y+h, x:x+w])
+
+            ###################################
+            #  DBに書き込み
+            ###################################
+            db.arts.insert_one({
+                "_id": ObjectId(art_id),
+                "name": art[0],
+                "width": width,
+                "height": height,
+                "cap_area": cap_area,
+                "attentions_num": len(contours_att)
+            })
+
+            print("{} ({}) OK - {}".format(art[0], art[1], art_id))
 
 if __name__ == "__main__":
     main()
