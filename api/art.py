@@ -12,7 +12,7 @@ from logger import logger
 from common import config
 from services.inspector import content_type
 
-app = Blueprint("crafting", __name__)
+app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
 class Art(Resource):
