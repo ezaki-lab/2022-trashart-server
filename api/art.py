@@ -17,7 +17,6 @@ api = Api(app, errors=Flask.errorhandler)
 
 class Art(Resource):
     @logger
-    @content_type("application/json")
     def get(self, art_id=None):
         if art_id == None:
             with MongoClient(config["DATABASE_URL"]) as client:
