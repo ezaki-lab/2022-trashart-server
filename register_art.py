@@ -47,27 +47,68 @@ def main():
 
             shutil.copytree("storage/arts_tmp/" + art[1], "storage/arts/" + art_id)
 
+            ###################################
+            #  DBに登録する情報
+            ###################################
             original_img = cv2.imread("storage/arts/" + art_id + "/art.png")
+            cv2.imwrite("storage/arts/" + art_id + "/art.webp", original_img)
             height, width, _ = original_img.shape
 
             cap_img = cv2.imread("storage/arts/" + art_id + "/cap.png")
 
             hsv = cv2.cvtColor(cap_img, cv2.COLOR_BGR2HSV)
 
-            hsv_min = np.array([0,0,255])
-            hsv_max = np.array([0,0,255])
+            hsv_min = np.array([0, 0, 255])
+            hsv_max = np.array([0, 0, 255])
             mask = cv2.inRange(hsv, hsv_min, hsv_max)
 
-            contours, hierarchy = cv2.findContours(
+            contours, _ = cv2.findContours(
                 mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            cap_area = cv2.contourArea(contours[0])
 
             db.arts.insert_one({
                 "_id": ObjectId(art_id),
                 "name": art[0],
                 "width": width,
                 "height": height,
-                "cap_area": cv2.contourArea(contours[0])
+                "cap_area": cap_area
             })
+
+            ###################################
+            #  製作補助画像
+            ###################################
+            art_bin = cv2.imread("storage/arts/" + art_id + "/art_bin.png")
+            art_att = cv2.imread("storage/arts/" + art_id + "/art_attention.png")
+
+            # art_bin.png と art_attention.png のサイズが異なるなら、統一
+            if art_bin.shape != art_att.shape:
+                art_att = cv2.resize(art_att, dsize=(art_bin.shape[1], art_bin.shape[0]))
+                cv2.imwrite("storage/arts/" + art_id + "/art_attention.png", art_att)
+
+            art_support = np.zeros((art_bin.shape[0], art_bin.shape[1], 4), np.uint8)
+
+            hsv = cv2.cvtColor(art_att, cv2.COLOR_BGR2HSV)
+            hsv_min = np.array([0, 0, 255])
+            hsv_max = np.array([0, 0, 255])
+            mask = cv2.inRange(hsv, hsv_min, hsv_max)
+
+            contours, _ = cv2.findContours(
+                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            cv2.drawContours(art_support, contours, -1, color=(68, 68, 239, 127), thickness=-1)
+
+            hsv = cv2.cvtColor(art_bin, cv2.COLOR_BGR2HSV)
+            hsv_min = np.array([0, 0, 255])
+            hsv_max = np.array([0, 0, 255])
+            mask = cv2.inRange(hsv, hsv_min, hsv_max)
+
+            contours, _ = cv2.findContours(
+                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            cv2.drawContours(art_support, contours, -1, color=(68, 68, 239, 255), thickness=3)
+
+            cv2.imwrite("storage/arts/" + art_id + "/art_support.webp", art_support)
 
 if __name__ == "__main__":
     main()
