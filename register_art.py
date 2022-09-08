@@ -119,7 +119,7 @@ def main():
                 x, y, w, h = cv2.boundingRect(cont)
                 img = np.zeros((art_att.shape[0], art_att.shape[1], 3), np.uint8)
                 cv2.drawContours(img, [cont], -1, color=(255, 255, 255), thickness=-1)
-                filepath = "%s/%03d.png" % (save_folder, i+1)
+                filepath = "%s/%d.png" % (save_folder, i+1)
                 cv2.imwrite(filepath, img[y:y+h, x:x+w])
 
             ###################################
