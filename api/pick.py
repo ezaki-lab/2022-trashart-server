@@ -72,4 +72,4 @@ class PickStore(Resource):
         }), 200)
 
 api.add_resource(PickSeparate, "/pick/separate")
-api.add_resource(PickStore, "/pick/store/<session_id>")
+api.add_resource(PickStore, "/pick/<session_id>/store")
