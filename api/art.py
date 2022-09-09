@@ -10,7 +10,6 @@ from pymongo import MongoClient
 import os
 from logger import logger
 from common import config
-from services.inspector import content_type
 
 app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)

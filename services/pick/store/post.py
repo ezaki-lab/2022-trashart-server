@@ -18,8 +18,9 @@ class Material:
         self.height: int = height
 
 class MaterialSeparator:
-    def __init__(self, b64_str: str):
+    def __init__(self, b64_str: str, session_id: str):
         b64_splitted: list[str] = b64_str.split(",", 1)
+        self.session_id = session_id
 
         # データ部
         self.data: str = b64_splitted[1]
@@ -65,7 +66,7 @@ class MaterialSeparator:
         return list(map(lambda m: {
             "id": m.id,
             "area": m.area,
-            "image_url": os.path.join(config["API_URL"], "storage/materials/{}.webp".format(m.id))
+            "image_url": os.path.join(config["API_URL"], "storage/materials/{}/{}.webp".format(self.session_id, m.id))
         }, self.materials))
 
     def __remove_noise_to_bin(self, img: np.ndarray) -> np.ndarray:
@@ -120,12 +121,13 @@ class MaterialSeparator:
         self.materials.sort(key=lambda item: item.area, reverse=True)
 
         # 保存フォルダーがなければ作成
-        if not os.path.exists("storage/materials/"):
-            os.makedirs("storage/materials/")
+        save_folder = "storage/materials/{}".format(self.session_id)
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
 
         # 素材画像を保存
         for i, m in enumerate(self.materials):
-            filepath = "storage/materials/{}.webp".format(m.id)
+            filepath = "{}/{}.webp".format(save_folder, m.id)
             img = self.original_img[
                 m.y:m.y+m.height,
                 m.x:m.x+m.width
