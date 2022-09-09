@@ -53,7 +53,7 @@ class PickStore(Resource):
                 abort(404)
 
         # フォルダーがあれば削除
-        save_folder = "storage/materials/{}".format(self.session_id)
+        save_folder = "storage/materials/{}".format(session_id)
         if os.path.exists(save_folder):
             shutil.rmtree(save_folder)
 
