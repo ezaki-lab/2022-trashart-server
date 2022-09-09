@@ -9,6 +9,7 @@ from pymongo import MongoClient
 
 import os
 from logger import logger
+from datetime import datetime
 from common import config
 from services.inspector import content_type
 from utils.random import generate_str
@@ -25,7 +26,8 @@ class Session(Resource):
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
             db.sessions.insert_one({
-                "_id": ObjectId(session_id)
+                "_id": ObjectId(session_id),
+                "start_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
 
         return make_response(jsonify({
