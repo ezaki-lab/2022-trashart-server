@@ -78,9 +78,12 @@ class ArtSuggestion(Resource):
 
         suggester = ArtSuggester(session_id)
         arts = suggester.suggest(10)
-        arts_parsed = ArtInfo.parse_list_dict(arts)
 
-        return make_response(jsonify(arts_parsed), 200)
+        arts_parsed = ArtInfo.parse_dict_list(arts)
+
+        return make_response(jsonify({
+            "arts": arts_parsed
+        }), 200)
 
 api.add_resource(Art, "/arts", "/arts/<art_id>")
 api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")

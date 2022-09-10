@@ -11,20 +11,20 @@ from utils.similarity import Similarity
 
 class Art:
     def __init__(
-        self, score: float, art_id: str, name: str,
+        self, art_id: str, name: str,
         width: int, height: int,
         cap_area: float, attentions_num: int,
-        original_img_url: str, support_img_url: str
+        original_img_url: str, support_img_url: str, score: float
     ):
-        self.score: float = score,
-        self.id: str = art_id,
-        self.name: str = name,
-        self.width: float = width,
-        self.height: float = height,
-        self.cap_area: float = cap_area,
-        self.attentions_num: int = attentions_num,
-        self.original_img_url: str = original_img_url,
+        self.id: str = art_id
+        self.name: str = name
+        self.width: float = width
+        self.height: float = height
+        self.cap_area: float = cap_area
+        self.attentions_num: int = attentions_num
+        self.original_img_url: str = original_img_url
         self.support_img_url: str = support_img_url
+        self.score: float = score
 
     @staticmethod
     def parse_dict_list(arts: list) -> list[dict]:
@@ -38,7 +38,8 @@ class Art:
                 "cap_area": art.cap_area,
                 "attentions_num": art.attentions_num,
                 "original_image_url": art.original_img_url,
-                "support_image_url": art.support_img_url
+                "support_image_url": art.support_img_url,
+                "score": art.score
             }
 
         return lis
@@ -53,28 +54,37 @@ class ArtSuggester:
         self.__similarity = Similarity()
 
     def suggest(self, num: int = 10) -> list[Art]:
-        self.materials = self.__load_images(self.__get_materials_path())
+        self.materials = self.__load_images(
+            self.__get_materials_path(),
+            "storage/materials/" + self.session_id
+        )
 
         for art_id in self.__get_art_ids():
             row = {}
             try:
                 row = self.__get_art_data(art_id)
-            except Exception as e:
+            except:
                 continue
 
-            attentions = self.__load_images(self.__get_art_attentions_path(art_id))
+            attentions = self.__load_images(
+                self.__get_art_attentions_path(art_id),
+                "storage/arts/{}/attentions".format(art_id)
+            )
 
-            self.arts += Art(
-                self.__calc_score(attentions),
+            original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
+            support_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art_support.webp".format(art_id))
+
+            self.arts += [Art(
                 art_id,
                 row["name"],
                 row["width"],
                 row["height"],
                 row["cap_area"],
                 row["attentions_num"],
-                row["original_image_url"],
-                row["support_image_url"]
-            )
+                original_img_url,
+                support_img_url,
+                self.__calc_score(attentions)
+            )]
 
         self.arts.sort(key=lambda art: art.score, reverse=True)
 
@@ -83,14 +93,17 @@ class ArtSuggester:
     def __get_materials_path(self) -> list[str]:
         return os.listdir("storage/materials/" + self.session_id)
 
-    def __load_images(self, paths: list[str]) -> list[np.ndarray]:
-        return list(map(lambda p: cv2.imread(p), paths))
+    def __load_images(self, paths: list[str], directory: str = None) -> list[np.ndarray]:
+        if directory == None:
+            return list(map(lambda p: cv2.imread(p), paths))
+
+        return list(map(lambda p: cv2.imread(os.path.join(directory, p)), paths))
 
     def __get_art_ids(self) -> list[str]:
-        return [f for f in os.listdir("storage/arts") if os.path.isdir(f)]
+        return [f for f in os.listdir("storage/arts")]
 
     def __get_art_attentions_path(self, art_id: int) -> list[str]:
-        return os.listdir("storage/arts/{}/art_attentions".format(art_id))
+        return os.listdir("storage/arts/{}/attentions".format(art_id))
 
     def __get_art_data(self, art_id: str) -> dict:
         with MongoClient(config["DATABASE_URL"]) as client:
@@ -100,13 +113,15 @@ class ArtSuggester:
             if data == None:
                 raise Exception("art data not found")
 
+            return data
+
     def __calc_score(self, attentions: list[np.ndarray]) -> float:
         score = 0.0
         for img in self.materials:
             for att in attentions:
                 try:
                     score += self.__calc_sole_score(img, att)
-                except Exception as e:
+                except:
                     continue
 
         return score
@@ -115,7 +130,7 @@ class ArtSuggester:
         sim = self.__similarity.calc(img, att)
 
         if sim == 0:
-            raise ValueError("similarity is 0, maybe images are same")
+            raise ValueError("similarity is 0, maybe images are same or feature points are not completely similar")
 
         # 基準化する式 (simが0に近づくほどスコアが高くなり、100に近づくほどスコアが低くなる)
         #   a = sim
