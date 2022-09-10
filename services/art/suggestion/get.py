@@ -5,6 +5,7 @@ from pymongo import MongoClient
 
 import os
 import math
+from concurrent.futures import ThreadPoolExecutor
 
 from common import config
 from utils.similarity import Similarity
@@ -14,7 +15,7 @@ class Art:
         self, art_id: str, name: str,
         width: int, height: int,
         cap_area: float, attentions_num: int,
-        original_img_url: str, support_img_url: str, score: float
+        original_img_url: str, support_img_url: str
     ):
         self.id: str = art_id
         self.name: str = name
@@ -24,7 +25,7 @@ class Art:
         self.attentions_num: int = attentions_num
         self.original_img_url: str = original_img_url
         self.support_img_url: str = support_img_url
-        self.score: float = score
+        self.score: float = -1
 
     @staticmethod
     def parse_dict_list(arts: list) -> list[dict]:
@@ -54,22 +55,32 @@ class ArtSuggester:
         self.__similarity = Similarity()
 
     def suggest(self, num: int = 10) -> list[Art]:
+        # 素材画像をセット
+        self.__set_material_imgs()
+        # 作品IDリストを取得
+        art_ids = self.__get_art_ids()
+        # 全ての作品情報をセット
+        self.__set_art_infos(art_ids)
+        # 各作品のスコアを計算
+        self.__set_art_scores()
+        # スコアが高い順に並ぶようにソート
+        self.arts.sort(key=lambda art: art.score, reverse=True)
+        # 指定した分だけ返す
+        return self.arts[:num]
+
+    def __set_material_imgs(self):
         self.materials = self.__load_images(
             self.__get_materials_path(),
             "storage/materials/" + self.session_id
         )
 
-        for art_id in self.__get_art_ids():
+    def __set_art_infos(self, art_ids: list[str]):
+        for art_id in art_ids:
             row = {}
             try:
                 row = self.__get_art_data(art_id)
             except:
                 continue
-
-            attentions = self.__load_images(
-                self.__get_art_attentions_path(art_id),
-                "storage/arts/{}/attentions".format(art_id)
-            )
 
             original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
             support_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art_support.webp".format(art_id))
@@ -83,12 +94,23 @@ class ArtSuggester:
                 row["attentions_num"],
                 original_img_url,
                 support_img_url,
-                self.__calc_score(attentions)
             )]
 
-        self.arts.sort(key=lambda art: art.score, reverse=True)
+    def __set_art_scores(self):
+        with ThreadPoolExecutor(max_workers=5, thread_name_prefix="calc_scores") as e:
+            futures = []
 
-        return self.arts[:num]
+            for art in self.arts:
+                attentions = self.__load_images(
+                    self.__get_art_attentions_path(art.id),
+                    "storage/arts/{}/attentions".format(art.id)
+                )
+                futures.append(
+                    e.submit(self.__calc_score, attentions)
+                )
+
+            for i, f in enumerate(futures):
+                self.arts[i].score = f.result()
 
     def __get_materials_path(self) -> list[str]:
         return os.listdir("storage/materials/" + self.session_id)
