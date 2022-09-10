@@ -23,8 +23,25 @@ class Art:
         self.height: float = height,
         self.cap_area: float = cap_area,
         self.attentions_num: int = attentions_num,
-        self.original_image_url: str = original_img_url,
-        self.support_image_url: str = support_img_url
+        self.original_img_url: str = original_img_url,
+        self.support_img_url: str = support_img_url
+
+    @staticmethod
+    def parse_dict_list(arts: list) -> list[dict]:
+        lis = [None] * len(arts)
+        for i, art in enumerate(arts):
+            lis[i] = {
+                "id": art.id,
+                "name": art.name,
+                "width": art.width,
+                "height": art.height,
+                "cap_area": art.cap_area,
+                "attentions_num": art.attentions_num,
+                "original_image_url": art.original_img_url,
+                "support_image_url": art.support_img_url
+            }
+
+        return lis
 
 class ArtSuggester:
     def __init__(self, session_id: str):

@@ -10,6 +10,7 @@ from pymongo import MongoClient
 import os
 from logger import logger
 from common import config
+from services.art.suggestion.get import Art as ArtInfo, ArtSuggester
 
 app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)
@@ -74,6 +75,12 @@ class ArtSuggestion(Resource):
 
             if data == None:
                 abort(404)
+
+        suggester = ArtSuggester(session_id)
+        arts = suggester.suggest(10)
+        arts_parsed = ArtInfo.parse_list_dict(arts)
+
+        return make_response(jsonify(arts_parsed), 200)
 
 api.add_resource(Art, "/arts", "/arts/<art_id>")
 api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")
