@@ -4,6 +4,7 @@
 
 from functools import wraps
 import logging
+import traceback
 from flask import abort, request
 
 def logger(func):
@@ -23,7 +24,7 @@ def logger(func):
             if not str(e)[:3].isdigit():
                 print(
                 "\n###################################\n#  ERROR\n###################################\n")
-                print(e)
+                traceback.print_exc()
                 logging.debug(e)
 
             abort(e.code)
