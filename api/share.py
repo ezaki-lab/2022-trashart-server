@@ -15,29 +15,27 @@ from utils.base64_to_file import Base64_to_file
 app = Blueprint("share", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
-class Share(Resource):
+class SharePhoto(Resource):
     @logger
     @content_type("application/json")
-    def put(self, crafting_id=None):
+    def post(self, session_id: str):
         parser = RequestParser()
-        parser.add_argument("image", type=str, location="json")
-        parser.add_argument("trash", type=str, location="json")
+        parser.add_argument("data", required=True, type=str, location="json")
         args = parser.parse_args()
 
         with MongoClient(config["DATABASE_URL"]) as client:
             db = client.trashart_db
-            db.arts.insert_one({
-                "_id": ObjectId(crafting_id),
-                "trash": args["trash"]
-            })
+            data = db.sessions.find_one(ObjectId(session_id))
 
-        # Base64形式で表現された画像をファイルに書き出す
+            if data == None:
+                abort(404)
+
         try:
-            converter = Base64_to_file(args["image"])
-            converter.save("storage/arts/", crafting_id+".webp", webp=True)
+            converter = Base64_to_file(args["data"])
+            path = converter.save("storage/works/", session_id+".png")
         except Exception as e:
             abort(400)
 
         return make_response(jsonify({}), 200)
 
-api.add_resource(Share, "/share/<crafting_id>")
+api.add_resource(SharePhoto, "/share/<session_id>/photo")
