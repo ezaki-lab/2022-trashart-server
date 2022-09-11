@@ -10,14 +10,13 @@ from pymongo import MongoClient
 import os
 from logger import logger
 from common import config
-from services.inspector import content_type
+from services.art.suggestion.get import Art as ArtInfo, ArtSuggester
 
 app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
 class Art(Resource):
     @logger
-    @content_type("application/json")
     def get(self, art_id=None):
         if art_id == None:
             with MongoClient(config["DATABASE_URL"]) as client:
@@ -68,4 +67,23 @@ class Art(Resource):
                 "support_image_url": support_img_url
             }), 200)
 
+class ArtSuggestion(Resource):
+    def get(self, session_id: str):
+        with MongoClient(config["DATABASE_URL"]) as client:
+            db = client.trashart_db
+            data = db.sessions.find_one(ObjectId(session_id))
+
+            if data == None:
+                abort(404)
+
+        suggester = ArtSuggester(session_id)
+        arts = suggester.suggest(10)
+
+        arts_parsed = ArtInfo.parse_dict_list(arts)
+
+        return make_response(jsonify({
+            "arts": arts_parsed
+        }), 200)
+
 api.add_resource(Art, "/arts", "/arts/<art_id>")
+api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")
