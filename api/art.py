@@ -76,6 +76,10 @@ class ArtSuggestion(Resource):
             if data == None:
                 abort(404)
 
+        # 素材画像をまだ撮影していないなら
+        if not os.path.exists("storage/materials/" + session_id):
+            abort(400)
+
         suggester = ArtSuggester(session_id)
         arts = suggester.suggest(10)
 
