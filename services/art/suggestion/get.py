@@ -154,6 +154,9 @@ class ArtSuggester:
         if sim == 0:
             raise ValueError("similarity is 0, maybe images are same or feature points are not completely similar")
 
+        if sim > 100:
+            return 0
+
         # 基準化する式 (simが0に近づくほどスコアが高くなり、100に近づくほどスコアが低くなる)
         #   a = sim
         #   100 : π/2 = a : a'
