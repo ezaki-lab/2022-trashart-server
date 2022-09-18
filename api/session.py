@@ -7,7 +7,6 @@ from flask_restful import Api, Resource
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-import os
 from logger import logger
 from datetime import datetime
 from common import config
