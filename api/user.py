@@ -44,7 +44,6 @@ class User(Resource):
             for row in db.craftings.find({"user_id": ObjectId(user_id)}):
                 craftings.append({
                     "id": str(row["_id"]),
-                    "user_id": str(row["user_id"]),
                     "title": row["title"] if "title" in row else "",
                     "hashtags": row["hashtags"] if "hashtags" in row else [],
                     "image_url": row["image_url"] if "image_url" in row else ""
