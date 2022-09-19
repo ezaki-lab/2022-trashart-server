@@ -7,6 +7,7 @@ from flask_restful.reqparse import RequestParser
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
+import os
 from logger import logger
 from common import config
 from services.inspector import content_type
@@ -34,7 +35,8 @@ class Share(Resource):
                 "_id": ObjectId(crafting_id)
             }, {
                 "$set": {
-                    "title": args["title"]
+                    "title": args["title"],
+                    "image_url": os.path.join(config["API_URL"], f"storage/craftings/{crafting_id}.png")
                 }
             })
 
