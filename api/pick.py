@@ -47,7 +47,7 @@ class PickStore(Resource):
         args = parser.parse_args()
 
         with MongoClient(config["DATABASE_URL"]) as client:
-            if not existed_session_id(session_id, client):
+            if not existed_session_id(client, session_id):
                 abort(404)
 
         # フォルダーがあれば削除
