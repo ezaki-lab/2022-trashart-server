@@ -20,7 +20,7 @@ api = Api(app, errors=Flask.errorhandler)
 class Share(Resource):
     @logger
     @content_type("application/json")
-    def post(self, crafting_id: str):
+    def patch(self, crafting_id: str):
         parser = RequestParser()
         parser.add_argument("title", required=True, type=str, location="json")
         args = parser.parse_args()
