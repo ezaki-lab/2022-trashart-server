@@ -18,6 +18,22 @@ api = Api(app, errors=Flask.errorhandler)
 
 class Session(Resource):
     @logger
+    def get(self):
+        sessions = []
+
+        with MongoClient(config["DATABASE_URL"]) as client:
+            db = client.trashart_db
+            for row in db.sessions.find():
+                sessions.append({
+                    "id": str(row["_id"]),
+                    "start_at": row["start_at"]
+                })
+
+        return make_response(jsonify({
+            "sessions": sessions
+        }), 200)
+
+    @logger
     @content_type("application/json")
     def post(self):
         session_id = generate_str(24, hex_only=True)

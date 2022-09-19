@@ -14,6 +14,7 @@ import os
 import shutil
 from common import config
 from services.inspector import content_type
+from services.inspector.existed import existed_session_id
 from services.pick.store.post import MaterialSeparator
 from utils.base64_to_file import Base64_to_file
 
@@ -46,10 +47,7 @@ class PickStore(Resource):
         args = parser.parse_args()
 
         with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            data = db.sessions.find_one(ObjectId(session_id))
-
-            if data == None:
+            if not existed_session_id(session_id, client):
                 abort(404)
 
         # フォルダーがあれば削除
