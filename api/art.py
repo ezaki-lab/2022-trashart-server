@@ -11,6 +11,7 @@ import os
 from logger import logger
 from common import config
 from services.art.suggestion.get import Art as ArtInfo, ArtSuggester
+from services.inspector.existed import existed_art_id, existed_session_id
 
 app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)
@@ -50,7 +51,7 @@ class Art(Resource):
             db = client.trashart_db
             data = db.arts.find_one(ObjectId(art_id))
 
-            if data == None:
+            if not existed_art_id(client, art_id):
                 abort(404)
 
             original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
@@ -70,10 +71,7 @@ class Art(Resource):
 class ArtSuggestion(Resource):
     def get(self, session_id: str):
         with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            data = db.sessions.find_one(ObjectId(session_id))
-
-            if data == None:
+            if not existed_session_id(client, session_id):
                 abort(404)
 
         # 素材画像をまだ撮影していないなら
