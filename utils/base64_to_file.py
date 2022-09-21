@@ -32,10 +32,14 @@ class Base64_to_file:
         path = os.path.join(save_folder, filename)
 
         # ファイルに書き出し
+        decoded = None
+        try:
+            decoded = b64decode(self.data.encode())
+        except:
+            raise ValueError("Base64 decode error")
+
         Image.open(
-            io.BytesIO(
-                b64decode(self.data.encode())
-            )
+            io.BytesIO(decoded)
         ).save(path, "webp" if webp else "png")
 
         return path
