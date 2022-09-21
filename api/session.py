@@ -2,51 +2,38 @@
 セッションAPI
 """
 
-from flask import Blueprint, Flask, jsonify, make_response
-from flask_restful import Api, Resource
-from bson.objectid import ObjectId
-from pymongo import MongoClient
-
+from flask import Blueprint, Flask
+from flask_restful import Api, abort, Resource
 from logger import logger
-from datetime import datetime
-from common import config
+from models.session import Session as SessionData
+from models.session import Sessions as SessionsData
 from services.inspector import content_type
-from utils.random import generate_str
+from services.server import response as res
 
 app = Blueprint("session", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
 class Session(Resource):
     @logger
-    def get(self):
-        sessions = []
+    def get(self, session_id: str=None):
+        if session_id == None:
+            return res.ok(SessionsData().to_json())
 
-        with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            for row in db.sessions.find():
-                sessions.append({
-                    "id": str(row["_id"]),
-                    "start_at": row["start_at"]
-                })
-
-        return make_response(jsonify({
-            "sessions": sessions
-        }), 200)
+        try:
+            return res.ok(SessionData(session_id).to_json())
+        except FileNotFoundError:
+            return res.bad_request({
+                "message": "This session does not exist."
+            })
 
     @logger
     @content_type("application/json")
-    def post(self):
-        session_id = generate_str(24, hex_only=True)
+    def post(self, session_id: str=None):
+        if session_id != None:
+            abort(404)
 
-        with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            db.sessions.insert_one({
-                "_id": ObjectId(session_id),
-                "start_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
+        session = SessionData()
+        session.post()
+        return res.created(session.to_json())
 
-        return make_response(jsonify({
-            "id": session_id
-        }), 200)
-
-api.add_resource(Session, "/sessions")
+api.add_resource(Session, "/sessions", "/sessions/<session_id>")

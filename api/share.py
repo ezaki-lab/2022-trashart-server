@@ -16,10 +16,10 @@ class Share(Resource):
     @logger
     def get(self, crafting_id: str=None):
         if crafting_id == None:
-            return res.ok(Craftings().craftings)
+            return res.ok(Craftings().to_json())
 
         try:
-            return res.ok(Crafting(crafting_id).__dict__)
+            return res.ok(Crafting(crafting_id).to_json())
         except FileNotFoundError:
             return res.bad_request({
                 "message": "This crafting does not exist."
@@ -33,24 +33,24 @@ class Share(Resource):
         "hashtags (required)": list,
         "image (required)": str
     })
-    def post(self, json: any, crafting_id: str=None):
+    def post(self, json: dict, crafting_id: str=None):
         if crafting_id != None:
             abort(404)
 
+        crafting = Crafting()
+
         try:
-            crafting = Crafting().post(
+            crafting.post(
                 json["user_id"],
                 json["title"],
                 json["hashtags"],
                 json["image"]
             )
-            return res.created({
-                "id": crafting.id
-            })
-
         except FileNotFoundError:
             return res.bad_request({
                 "message": "This user does not exist."
             })
+
+        return res.created(crafting.to_json())
 
 api.add_resource(Share, "/shares", "/shares/<crafting_id>")

@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+import dateutil.parser as parser
 from datetime import datetime
 from models.data import Data
 from utils.random import generate_str
@@ -11,7 +12,7 @@ class Crafting(Data):
         self.title: str = None
         self.hashtags: list[str] = []
         self.image_url: str = None
-        self.created_at = None
+        self.created_at: datetime = None
 
         if crafting_id != None:
             if not self._exists_crafting_id(crafting_id):
@@ -42,6 +43,16 @@ class Crafting(Data):
                 "created_at": self.created_at
             })
 
+    def to_json(self):
+        return {
+            "crafting_id": self.crafting_id,
+            "user_id": self.user_id,
+            "title": self.title,
+            "hashtags": self.hashtags,
+            "image_url": self.image_url,
+            "create_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
     def __get(self):
         with self._database() as c:
             db = c.trashart_db
@@ -51,27 +62,47 @@ class Crafting(Data):
             self.title = r["title"] if "title" in r else ""
             self.hashtags = r["hashtags"] if "hashtags" in r else []
             self.image_url = r["image_url"] if "image_url" in r else ""
-            self.created_at = r["created_at"] if "created_at" in r else ""
+            self.created_at = r["created_at"] if "created_at" in r else None
 
     def __save_img(self, img_b64: str) -> str:
         converter = Base64_to_file(img_b64)
         return converter.save("storage/craftings/", f"{self.crafting_id}.png")
 
 class Craftings(Data):
-    def __init__(self):
+    def __init__(self, user_id: str=None):
         self.craftings: list[dict] = []
 
-        self.__get()
+        if user_id != None:
+            if not self._exists_user_id(user_id):
+                raise FileNotFoundError("This user does not exist")
 
-    def __get(self):
+        self.__get(user_id)
+
+    def to_json(self):
+        return {
+            "craftings": self.craftings
+        }
+
+    def __get(self, user_id: str=None):
         with self._database() as c:
             db = c.trashart_db
 
-            for r in db.craftings.find():
+            rows = None
+            if user_id == None:
+                rows = db.craftings.find()
+            else:
+                rows = db.craftings.find({"user_id": ObjectId(user_id)})
+
+            for r in rows:
+                created_at = ""
+                if "created_at" in r:
+                    created_at = parser.parse(r["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
+
                 self.craftings.append({
                     "id": str(r["_id"]),
                     "user_id": str(r["user_id"]) if "user_id" in r else "",
                     "title": r["title"] if "title" in r else "",
                     "hashtags": r["hashtags"] if "hashtags" in r else [],
-                    "image_url": r["image_url"] if "image_url" in r else ""
+                    "image_url": r["image_url"] if "image_url" in r else "",
+                    "created_at": created_at
                 })
