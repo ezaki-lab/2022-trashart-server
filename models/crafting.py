@@ -14,7 +14,7 @@ class Crafting(Data):
         self.created_at = None
 
         if crafting_id != None:
-            if self._exists_crafting_id(crafting_id):
+            if not self._exists_crafting_id(crafting_id):
                 raise FileNotFoundError("This crafting does not exist")
             self.__get()
 
@@ -57,7 +57,7 @@ class Crafting(Data):
         converter = Base64_to_file(img_b64)
         return converter.save("storage/craftings/", f"{self.crafting_id}.png")
 
-class Craftings:
+class Craftings(Data):
     def __init__(self):
         self.craftings: list[dict] = []
 
@@ -66,8 +66,6 @@ class Craftings:
     def __get(self):
         with self._database() as c:
             db = c.trashart_db
-            for r in db.craftings.find({"user_id": ObjectId(self.user_id)}):
-                self.craftings.append(Crafting(str(r["_id"])))
 
             for r in db.craftings.find():
                 self.craftings.append({

@@ -21,7 +21,9 @@ class Share(Resource):
         try:
             return res.ok(Crafting(crafting_id).__dict__)
         except FileNotFoundError:
-            abort(404)
+            return res.bad_request({
+                "message": "This crafting does not exist."
+            })
 
     @logger
     @content_type("application/json")
@@ -47,6 +49,8 @@ class Share(Resource):
             })
 
         except FileNotFoundError:
-            abort(404)
+            return res.bad_request({
+                "message": "This user does not exist."
+            })
 
-api.add_resource(Share, "/share", "/share/<crafting_id>")
+api.add_resource(Share, "/shares", "/shares/<crafting_id>")

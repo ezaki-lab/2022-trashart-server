@@ -1,1 +1,1 @@
-from models import *
+from models.crafting import *
