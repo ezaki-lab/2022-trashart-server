@@ -25,7 +25,7 @@ class CheckScheme:
         self.scheme = scheme
 
     def check(self, dic: dict) -> bool:
-        self.__check(self.scheme, dic)
+        return self.__check(self.scheme, dic)
 
     def __check(self, scheme, dic: any) -> bool:
         if isinstance(scheme, dict):
