@@ -28,10 +28,10 @@ class Share(Resource):
     @logger
     @content_type("application/json")
     @json_scheme({
-        "user_id": str,
-        "title": str,
-        "hashtags": list,
-        "image": str
+        "user_id (required)": str,
+        "title (required)": str,
+        "hashtags (required)": list,
+        "image (required)": str
     })
     def post(self, json: any, crafting_id: str=None):
         if crafting_id != None:
