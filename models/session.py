@@ -1,5 +1,4 @@
 from bson.objectid import ObjectId
-import dateutil.parser as parser
 from datetime import datetime
 from models.data import Data
 from utils.random import generate_str
@@ -37,7 +36,7 @@ class Session(Data):
             db = c.trashart_db
             r = db.sessions.find_one(ObjectId(self.session_id))
 
-            self.start_at = parser.parse(r["start_at"]) if "start_at" in r else None
+            self.start_at = r["start_at"].strftime("%Y-%m-%d %H:%M:%S") if "start_at" in r else None
 
 class Sessions(Data):
     def __init__(self):
@@ -55,11 +54,7 @@ class Sessions(Data):
             db = c.trashart_db
 
             for r in db.sessions.find():
-                start_at = ""
-                if "start_at" in r:
-                    start_at = parser.parse(r["start_at"]).strftime("%Y-%m-%d %H:%M:%S")
-
                 self.sessions.append({
                     "id": str(r["_id"]),
-                    "start_at": start_at,
+                    "start_at": r["start_at"].strftime("%Y-%m-%d %H:%M:%S") if "start_at" in r else "",
                 })
