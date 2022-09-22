@@ -7,7 +7,7 @@ class Data:
     def _database(self):
         return MongoClient(config["DATABASE_URL"])
 
-    def _get_storage_url(path: str):
+    def _get_storage_url(self, path: str):
         return os.path.join(config["API_URL"], "storage", path)
 
     def _exists_user_id(self, user_id: str):
