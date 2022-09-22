@@ -1,5 +1,4 @@
 from bson.objectid import ObjectId
-import dateutil.parser as parser
 from datetime import datetime
 from models.data import Data
 from utils.random import generate_str
@@ -94,15 +93,11 @@ class Craftings(Data):
                 rows = db.craftings.find({"user_id": ObjectId(user_id)})
 
             for r in rows:
-                created_at = ""
-                if "created_at" in r:
-                    created_at = parser.parse(r["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
-
                 self.craftings.append({
                     "id": str(r["_id"]),
                     "user_id": str(r["user_id"]) if "user_id" in r else "",
                     "title": r["title"] if "title" in r else "",
                     "hashtags": r["hashtags"] if "hashtags" in r else [],
                     "image_url": r["image_url"] if "image_url" in r else "",
-                    "created_at": created_at
+                    "created_at": r["created_at"].strftime("%Y-%m-%d %H:%M:%S") if "created_at" in r else "",
                 })
