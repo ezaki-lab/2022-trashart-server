@@ -32,8 +32,7 @@ class User(Data):
         return {
             "id": self.user_id,
             "register_at": self.register_at.strftime("%Y-%m-%d %H:%M:%S"),
-            "craftings": self.craftings,
-            "crafting_num": len(self.craftings)
+            "craftings": self.craftings
         }
 
     def __get(self):
