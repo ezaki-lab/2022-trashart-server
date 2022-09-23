@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+import dateutil.parser as parser
 from datetime import datetime
 from models.crafting import Craftings
 from models.data import Data
@@ -40,7 +41,7 @@ class User(Data):
             db = c.trashart_db
             r = db.users.find_one(ObjectId(self.user_id))
 
-            self.register_at = r["register_at"].strftime("%Y-%m-%d %H:%M:%S") if "register_at" in r else ""
+            self.register_at = parser.parse(r["register_at"]) if "register_at" in r else ""
 
         self.craftings = Craftings(self.user_id).craftings
 
@@ -60,7 +61,11 @@ class Users(Data):
             db = c.trashart_db
 
             for r in db.users.find():
+                register_at = ""
+                if "register_at" in r:
+                    register_at = parser.parse(r["register_at"]).strftime("%Y-%m-%d %H:%M:%S")
+
                 self.users.append({
                     "id": str(r["_id"]),
-                    "register_at": r["register_at"].strftime("%Y-%m-%d %H:%M:%S") if "register_at" in r else "",
+                    "register_at": register_at,
                 })
