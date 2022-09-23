@@ -24,14 +24,15 @@ class User(Data):
 
             db.users.insert_one({
                 "_id": ObjectId(self.user_id),
-                "register_at": self.register_at.strftime("%Y-%m-%d %H:%M:%S")
+                "register_at": self.register_at
             })
 
     def to_json(self):
         return {
             "id": self.user_id,
             "register_at": self.register_at.strftime("%Y-%m-%d %H:%M:%S"),
-            "craftings": self.craftings
+            "craftings": self.craftings,
+            "crafting_num": len(self.craftings)
         }
 
     def __get(self):
@@ -39,7 +40,7 @@ class User(Data):
             db = c.trashart_db
             r = db.users.find_one(ObjectId(self.user_id))
 
-            self.register_at = r["register_at"].strftime("%Y-%m-%d %H:%M:%S") if "register_at" in r else ""
+            self.register_at = r["register_at"] if "register_at" in r else ""
 
         self.craftings = Craftings(self.user_id).craftings
 
@@ -59,7 +60,11 @@ class Users(Data):
             db = c.trashart_db
 
             for r in db.users.find():
+                register_at = ""
+                if "register_at" in r:
+                    register_at = r["register_at"].strftime("%Y-%m-%d %H:%M:%S")
+
                 self.users.append({
                     "id": str(r["_id"]),
-                    "register_at": r["register_at"].strftime("%Y-%m-%d %H:%M:%S") if "register_at" in r else "",
+                    "register_at": register_at,
                 })
