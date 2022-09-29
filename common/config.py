@@ -3,6 +3,7 @@
 """
 
 import yaml
+from tensorflow.keras.models import load_model
 
 config = {}
 
@@ -15,3 +16,5 @@ with open("./config.yaml") as f:
                 tmp = yaml.safe_load(f)
                 config.update(**tmp)
         del config["includes"]
+
+config["PLASTIC_CLASSIFICATION_MODEL"] = load_model("ml_models/plastic-classification.h5")
