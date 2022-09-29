@@ -5,7 +5,6 @@
 from flask import Blueprint, Flask
 from flask_restful import Api, Resource
 from pymongo import MongoClient
-from datetime import datetime
 from logger import logger
 import os
 import shutil
@@ -14,28 +13,9 @@ from services.inspector import content_type, json_scheme
 from services.inspector.existed import existed_session_id
 from services.server import response as res
 from services.pick.store.post import MaterialSeparator
-from utils.base64_to_file import Base64_to_file
 
 app = Blueprint("pick", __name__)
 api = Api(app, errors=Flask.errorhandler)
-
-class PickSeparate(Resource):
-    @logger
-    @content_type("application/json")
-    @json_scheme({
-        "image (required)": str
-    })
-    def post(self, json: dict):
-        try:
-            converter = Base64_to_file(json["image"])
-            basename = datetime.now().strftime("%H-%M-%S")
-            converter.save("storage/chousa/", basename+".png")
-        except Exception:
-            return res.bad_request({
-                "message": "This base64 image is not valid."
-            })
-
-        return res.ok({})
 
 class PickStore(Resource):
     @logger
@@ -71,5 +51,4 @@ class PickStore(Resource):
             "materials": separator.get_materials_info()
         })
 
-api.add_resource(PickSeparate, "/pick/separate")
 api.add_resource(PickStore, "/pick/<session_id>/store")
