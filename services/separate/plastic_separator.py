@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
 from base64 import b64decode
+import os
 from common import config
 from utils.image_color import ImageColorGuesser
+from utils.random import generate_str
 from utils.trimmer import Trimmer
 
 class Plastic:
@@ -25,8 +27,9 @@ class PlasticSeparator:
     }
 
     def __init__(self, img_lighted_b64: str, img_led850_b64: str, img_led940_b64: str):
-        self.results = [None] * len(self.plastic_names)
-        self.model = config["PLASTIC_CLASSIFICATION_MODEL"]
+        self.results: list[Plastic] = [None] * len(self.plastic_names)
+        self.model: any = config["PLASTIC_CLASSIFICATION_MODEL"]
+        self.color: str = None
 
         # Base64形式の画像データをOpenCV画像データに変換
         try:
@@ -41,9 +44,9 @@ class PlasticSeparator:
 
     def separate(self):
         guesser = ImageColorGuesser(self.img_lighted)
-        color = guesser.get_color()
+        self.color = guesser.get_color()
 
-        self.__predict(color)
+        self.__predict()
 
     def to_json(self) -> dict:
         results = [None] * len(self.results)
@@ -55,15 +58,17 @@ class PlasticSeparator:
             }
 
         return {
-            "results": results
+            "results": results,
+            "image": self.__save_img(self.img_lighted),
+            "color": self.color
         }
 
-    def __predict(self, color: str) -> np.ndarray:
+    def __predict(self) -> np.ndarray:
         lum_850 = self.__calc_luminance(self.img_led850)
         lum_940 = self.__calc_luminance(self.img_led940)
 
         input_data = self.__format_for_predict(
-            color,
+            self.color,
             lum_850,
             lum_940
         )
@@ -125,3 +130,19 @@ class PlasticSeparator:
             l_count[i] = raveled[raveled == i].shape[0]
 
         return l_count
+
+    def __save_img(self, img: np.ndarray) -> np.ndarray:
+        random_id = generate_str(8)
+        save_folder = "storage/separates/"
+        filepath = f"{save_folder}{random_id}.webp"
+
+        # 保存フォルダーがなければ作成
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
+
+        cv2.imwrite(
+            filepath,
+            img
+        )
+
+        return os.path.join(config["API_URL"], filepath)
