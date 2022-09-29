@@ -63,7 +63,7 @@ class ImageColorGuesser:
         color_info.sort(key=lambda x: x.area, reverse=True)
 
         return self.__remove_color_tag(
-            color_info[0].color_name
+            color_info[0].name
         )
 
     def __remove_color_tag(self, name: str) -> str:

@@ -43,14 +43,14 @@ class PlasticSeparator:
         guesser = ImageColorGuesser(self.img_lighted)
         color = guesser.get_color()
 
-        self.__predict(color, self.img_led850, self.img_led940)
+        self.__predict(color)
 
     def to_json(self) -> dict:
         results = [None] * len(self.results)
 
-        for i, r in enumerate(results):
+        for i, r in enumerate(self.results):
             results[i] = {
-                "name": r.plastic_name,
+                "name": r.name,
                 "possibility": r.possibility
             }
 
@@ -58,17 +58,20 @@ class PlasticSeparator:
             "results": results
         }
 
-    def __predict(self, color: str, lum_850: np.ndarray, lum_940: np.ndarray) -> np.ndarray:
+    def __predict(self, color: str) -> np.ndarray:
+        lum_850 = self.__calc_luminance(self.img_led850)
+        lum_940 = self.__calc_luminance(self.img_led940)
+
         input_data = self.__format_for_predict(
             color,
             lum_850,
             lum_940
         )
 
-        results = self.model.predict(input_data)
+        results = self.model.predict(input_data)[0]
 
         for i, name in enumerate(self.plastic_names):
-            self.results[i] = Plastic(name, float(results[0]))
+            self.results[i] = Plastic(name, float(results[i]))
 
         self.results.sort(key=lambda x: x.possibility, reverse=True)
 
@@ -84,13 +87,13 @@ class PlasticSeparator:
         data = np.zeros((1,513), dtype=np.int32)
         data[0] = info
 
-        return data[0]
+        return data
 
     def __trim(self):
         # ゴミだけが映るようにトリミング
         self.img_lighted, x, y, length = Trimmer(self.img_lighted).auto_trim()
-        self.img_led850 = Trimmer(self.img_led850).trim(x, y, length, length)
-        self.img_led940 = Trimmer(self.img_led940).trim(x, y, length, length)
+        self.img_led850 = Trimmer.trim(self.img_led850, x, y, length, length)
+        self.img_led940 = Trimmer.trim(self.img_led940, x, y, length, length)
 
     def __resize_128(self):
         # 処理されやすい大きさにトリミング
@@ -102,6 +105,8 @@ class PlasticSeparator:
 
     def __load_b64(self, b64: str) -> np.ndarray:
         # Base64 -> OpenCV画像データ
+        b64 = b64.split(",", 1)[1]
+
         return cv2.imdecode(
             np.frombuffer(
                 b64decode(b64.encode()),
@@ -109,3 +114,14 @@ class PlasticSeparator:
             ),
             cv2.IMREAD_ANYCOLOR
         )
+
+    def __calc_luminance(self, img: np.ndarray) -> np.ndarray:
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        _,l,_ = cv2.split(hls)
+        raveled = l.ravel()
+
+        l_count = np.zeros(256, dtype=np.int32)
+        for i in range(256):
+            l_count[i] = raveled[raveled == i].shape[0]
+
+        return l_count
