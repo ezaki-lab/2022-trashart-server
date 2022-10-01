@@ -68,6 +68,19 @@ class Art(Resource):
                 "support_image_url": support_img_url
             }), 200)
 
+class ArtHashtags(Resource):
+    def get(self, art_id: str=None):
+        if not existed_art_id(MongoClient(config["DATABASE_URL"]), art_id):
+            abort(404)
+
+        with MongoClient(config["DATABASE_URL"]) as client:
+            db = client.trashart_db
+            data = db.arts.find_one(ObjectId(art_id))
+
+            return make_response(jsonify({
+                "hashtags": data["hashtags"]
+            }), 200)
+
 class ArtSuggestion(Resource):
     def get(self, session_id: str):
         with MongoClient(config["DATABASE_URL"]) as client:
@@ -88,4 +101,5 @@ class ArtSuggestion(Resource):
         }), 200)
 
 api.add_resource(Art, "/arts", "/arts/<art_id>")
+api.add_resource(ArtHashtags, "/arts/<art_id>/hashtags")
 api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")
