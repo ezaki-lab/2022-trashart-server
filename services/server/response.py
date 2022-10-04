@@ -24,7 +24,7 @@ def forbidden(body: dict):
 def not_found(body: dict):
     return make_response(jsonify(body), 404)
 
-def not_found(body: dict):
+def method_not_allowed(body: dict):
     return make_response(jsonify(body), 405)
 
 def conflict(body: dict):

@@ -5,7 +5,8 @@
 from flask import Blueprint, Flask
 from flask_restful import Api, Resource
 from logger import logger
-from models.art import Art as ArtData, Arts as ArtsData, ArtSuggester
+from models.art import Art as ArtData, Arts as ArtsData
+from services.art.suggester import ArtSuggester
 from services.server import response as res
 
 app = Blueprint("art", __name__)
@@ -32,9 +33,17 @@ class ArtSuggestion(Resource):
         try:
             suggester = ArtSuggester(session_id)
         except FileNotFoundError as e:
-            return res.bad_request({
-                "message": "{}.".format(str(e))
-            })
+            msg = str(e)
+
+            if msg == "This session does not exist":
+                return res.not_found({
+                    "message": "This session does not exist"
+                })
+
+            elif msg == "This session does not have materials":
+                return res.bad_request({
+                    "message": "This session does not have materials"
+                })
 
         arts = suggester.suggest(10)
         arts_parsed = ArtsData.parse_dict_list(arts)
