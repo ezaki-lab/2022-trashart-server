@@ -44,7 +44,7 @@ class Crafting(Data):
 
     def to_json(self):
         return {
-            "crafting_id": self.crafting_id,
+            "id": self.crafting_id,
             "user_id": self.user_id,
             "title": self.title,
             "hashtags": self.hashtags,
@@ -57,7 +57,6 @@ class Crafting(Data):
             db = c.trashart_db
             r = db.craftings.find_one(ObjectId(self.crafting_id))
 
-            self.user_id = str(r["user_id"]) if "user_id" in r else ""
             self.title = r["title"] if "title" in r else ""
             self.hashtags = r["hashtags"] if "hashtags" in r else []
             self.image_url = r["image_url"] if "image_url" in r else ""
