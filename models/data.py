@@ -41,3 +41,11 @@ class Data:
                 return db.craftings.find_one(ObjectId(crafting_id)) != None
             except:
                 return False
+
+    def _exists_photo_id(self, photo_id: str):
+        with self._database() as c:
+            db = c.trashart_db
+            try:
+                return db.photos.find_one(ObjectId(photo_id)) != None
+            except:
+                return False

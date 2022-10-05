@@ -52,11 +52,11 @@ class ArtSuggestion(Resource):
             "arts": arts_parsed
         })
 
-class ArtRandoms(Resource):
+class ArtRandom(Resource):
     @logger
     def get(self):
         return res.ok(ArtsData(10).to_json())
 
 api.add_resource(Art, "/arts", "/arts/<art_id>")
 api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")
-api.add_resource(ArtRandoms, "/art-randoms")
+api.add_resource(ArtRandom, "/art-randoms")
