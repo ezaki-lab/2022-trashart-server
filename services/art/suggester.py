@@ -1,51 +1,15 @@
 import cv2
 import numpy as np
-from bson.objectid import ObjectId
-from pymongo import MongoClient
 
 import os
 import math
 from concurrent.futures import ThreadPoolExecutor
 
-from common import config
+from models.data import Data
+from models.art import Art
 from utils.similarity import Similarity
 
-class Art:
-    def __init__(
-        self, art_id: str, name: str,
-        width: int, height: int,
-        cap_area: float, attentions_num: int,
-        original_img_url: str, support_img_url: str
-    ):
-        self.id: str = art_id
-        self.name: str = name
-        self.width: float = width
-        self.height: float = height
-        self.cap_area: float = cap_area
-        self.attentions_num: int = attentions_num
-        self.original_img_url: str = original_img_url
-        self.support_img_url: str = support_img_url
-        self.score: float = -1
-
-    @staticmethod
-    def parse_dict_list(arts: list) -> list[dict]:
-        lis = [None] * len(arts)
-        for i, art in enumerate(arts):
-            lis[i] = {
-                "id": art.id,
-                "name": art.name,
-                "width": art.width,
-                "height": art.height,
-                "cap_area": art.cap_area,
-                "attentions_num": art.attentions_num,
-                "original_image_url": art.original_img_url,
-                "support_image_url": art.support_img_url,
-                "score": art.score
-            }
-
-        return lis
-
-class ArtSuggester:
+class ArtSuggester(Data):
     def __init__(self, session_id: str):
         self.session_id = session_id
         self.arts: list[Art] = []
@@ -54,13 +18,19 @@ class ArtSuggester:
         self.scores: dict = {}
         self.__similarity = Similarity()
 
+        if not self._exists_session_id(session_id):
+            raise FileNotFoundError("This session does not exist")
+
+        if not os.path.exists("storage/materials/" + session_id):
+            raise FileNotFoundError("This session does not have materials")
+
     def suggest(self, num: int = 10) -> list[Art]:
         # 素材画像をセット
         self.__set_material_imgs()
         # 作品IDリストを取得
         art_ids = self.__get_art_ids()
         # 全ての作品情報をセット
-        self.__set_art_infos(art_ids)
+        self.__set_arts(art_ids)
         # 各作品のスコアを計算
         self.__set_art_scores()
         # スコアが高い順に並ぶようにソート
@@ -74,27 +44,9 @@ class ArtSuggester:
             "storage/materials/" + self.session_id
         )
 
-    def __set_art_infos(self, art_ids: list[str]):
+    def __set_arts(self, art_ids: list[str]):
         for art_id in art_ids:
-            row = {}
-            try:
-                row = self.__get_art_data(art_id)
-            except:
-                continue
-
-            original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
-            support_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art_support.webp".format(art_id))
-
-            self.arts += [Art(
-                art_id,
-                row["name"],
-                row["width"],
-                row["height"],
-                row["cap_area"],
-                row["attentions_num"],
-                original_img_url,
-                support_img_url,
-            )]
+            self.arts.append(Art(art_id))
 
     def __set_art_scores(self):
         with ThreadPoolExecutor(max_workers=5, thread_name_prefix="calc_scores") as e:
@@ -102,8 +54,8 @@ class ArtSuggester:
 
             for art in self.arts:
                 attentions = self.__load_images(
-                    self.__get_art_attentions_path(art.id),
-                    "storage/arts/{}/attentions".format(art.id)
+                    self.__get_art_attentions_path(art.art_id),
+                    "storage/arts/{}/attentions".format(art.art_id)
                 )
                 futures.append(
                     e.submit(self.__calc_score, attentions)
@@ -122,20 +74,12 @@ class ArtSuggester:
         return list(map(lambda p: cv2.imread(os.path.join(directory, p)), paths))
 
     def __get_art_ids(self) -> list[str]:
-        return [f for f in os.listdir("storage/arts")]
+        with self._database() as c:
+            db = c.trashart_db
+            return list(map(lambda r: str(r["_id"]), db.arts.find()))
 
     def __get_art_attentions_path(self, art_id: int) -> list[str]:
         return os.listdir("storage/arts/{}/attentions".format(art_id))
-
-    def __get_art_data(self, art_id: str) -> dict:
-        with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            data = db.arts.find_one(ObjectId(art_id))
-
-            if data == None:
-                raise Exception("art data not found")
-
-            return data
 
     def __calc_score(self, attentions: list[np.ndarray]) -> float:
         score = 0.0

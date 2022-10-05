@@ -23,21 +23,29 @@ arts
 """
 
 arts = [
-    ["さかな", "fish"],
-    ["はち", "bee"],
-    ["イルカ", "dolphin"],
-    ["ウサギ", "rabbit"],
-    ["カニ", "crab"],
-    ["クラゲ", "jellyfish"],
-    ["ステゴサウルス", "stegosaurus"],
-    ["ティラノサウルス", "tyrannosaurus"],
-    ["マンボウ", "mammoth"],
-    ["リス", "squirrel"],
-    ["猫", "cat"],
-    ["船", "ship"],
-    ["蝶々", "butterfly"],
-    ["車", "car"],
-    ["雪だるま", "snowman"]
+    ["さかな", "fish", ["魚", "海"]],
+    ["イルカ", "dolphin", ["イルカ", "青", "海"]],
+    ["ウサギ", "rabbit", ["ウサギ", "ピンク"]],
+    ["カニ", "crab", ["カニ", "海岸"]],
+    ["クラゲ", "jellyfish", ["クラゲ", "海"]],
+    ["ステゴサウルス", "stegosaurus", ["ステゴサウルス", "恐竜"]],
+    ["ティラノサウルス", "tyrannosaurus", ["ティラノサウルス", "恐竜"]],
+    ["マンボウ", "mammoth", ["マンボウ", "海"]],
+    ["リス", "squirrel", ["リス", "森"]],
+    ["猫", "cat", ["猫", "かわいい"]],
+    ["船", "ship", ["船", "海"]],
+    ["車", "car", ["車"]],
+    ["ちょうちょ", "butterfly", ["ちょうちょ", "虫"]],
+    ["雪だるま", "snowman", ["雪だるま", "雪", "冬"]],
+    ["チョウチンアンコウ", "footballfish", ["チョウチンアンコウ", "魚", "深海生物"]],
+    ["ナンヨウハギ", "bluetang", ["ナンヨウハギ", "魚"]],
+    ["エビ", "prawn", ["エビ", "魚"]],
+    ["プテラノドン", "pteranodon", ["プテラノドン", "恐竜"]],
+    ["ロケット", "rocket", ["ロケット", "宇宙"]],
+    ["タツノオトシゴ", "seahorse", ["タツノオトシゴ", "魚"]],
+    ["クワガタムシ", "stag", ["クワガタムシ", "虫"]],
+    ["カメ", "turtle", ["カメ", "海"]],
+    ["クジラ", "whale", ["クジラ", "海"]]
 ]
 
 def main():
@@ -131,7 +139,8 @@ def main():
                 "width": width,
                 "height": height,
                 "cap_area": cap_area,
-                "attentions_num": len(contours_att)
+                "attentions_num": len(contours_att),
+                "hashtags": art[2]
             })
 
             print("{} ({}) OK - {}".format(art[0], art[1], art_id))

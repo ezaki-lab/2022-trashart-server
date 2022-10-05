@@ -2,90 +2,61 @@
 アートAPI
 """
 
-from flask import Blueprint, Flask, jsonify, make_response
-from flask_restful import Api, abort, Resource
-from bson.objectid import ObjectId
-from pymongo import MongoClient
-
-import os
+from flask import Blueprint, Flask
+from flask_restful import Api, Resource
 from logger import logger
-from common import config
-from services.art.suggestion.get import Art as ArtInfo, ArtSuggester
-from services.inspector.existed import existed_art_id, existed_session_id
+from models.art import Art as ArtData, Arts as ArtsData
+from services.art.suggester import ArtSuggester
+from services.server import response as res
 
 app = Blueprint("art", __name__)
 api = Api(app, errors=Flask.errorhandler)
 
 class Art(Resource):
     @logger
-    def get(self, art_id=None):
+    def get(self, art_id: str=None):
         if art_id == None:
-            with MongoClient(config["DATABASE_URL"]) as client:
-                db = client.trashart_db
-                cursor = db.arts.find()
+            return res.ok(ArtsData().to_json())
 
-                arts = []
-
-                for row in cursor:
-                    art_id = str(row["_id"])
-                    original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
-                    support_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art_support.webp".format(art_id))
-
-                    arts.append({
-                        "id": art_id,
-                        "name": row["name"],
-                        "width": row["width"],
-                        "height": row["height"],
-                        "cap_area": row["cap_area"],
-                        "attentions_num": row["attentions_num"],
-                        "original_image_url": original_img_url,
-                        "support_image_url": support_img_url
-                    })
-
-                return make_response(jsonify({
-                    "arts": arts
-                }), 200)
-
-
-        with MongoClient(config["DATABASE_URL"]) as client:
-            db = client.trashart_db
-            data = db.arts.find_one(ObjectId(art_id))
-
-            if not existed_art_id(client, art_id):
-                abort(404)
-
-            original_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art.webp".format(art_id))
-            support_img_url = os.path.join(config["API_URL"], "storage/arts/{}/art_support.webp".format(art_id))
-
-            return make_response(jsonify({
-                "id": art_id,
-                "name": data["name"],
-                "width": data["width"],
-                "height": data["height"],
-                "cap_area": data["cap_area"],
-                "attentions_num": data["attentions_num"],
-                "original_image_url": original_img_url,
-                "support_image_url": support_img_url
-            }), 200)
+        try:
+            return res.ok(ArtData(art_id).to_json())
+        except FileNotFoundError:
+            return res.bad_request({
+                "message": "This art does not exist."
+            })
 
 class ArtSuggestion(Resource):
+    @logger
     def get(self, session_id: str):
-        with MongoClient(config["DATABASE_URL"]) as client:
-            if not existed_session_id(client, session_id):
-                abort(404)
+        suggester = None
 
-        # 素材画像をまだ撮影していないなら
-        if not os.path.exists("storage/materials/" + session_id):
-            abort(400)
+        try:
+            suggester = ArtSuggester(session_id)
+        except FileNotFoundError as e:
+            msg = str(e)
 
-        suggester = ArtSuggester(session_id)
+            if msg == "This session does not exist":
+                return res.not_found({
+                    "message": "This session does not exist"
+                })
+
+            elif msg == "This session does not have materials":
+                return res.bad_request({
+                    "message": "This session does not have materials"
+                })
+
         arts = suggester.suggest(10)
+        arts_parsed = ArtsData.parse_dict_list(arts)
 
-        arts_parsed = ArtInfo.parse_dict_list(arts)
-
-        return make_response(jsonify({
+        return res.ok({
             "arts": arts_parsed
-        }), 200)
+        })
+
+class ArtRandom(Resource):
+    @logger
+    def get(self):
+        return res.ok(ArtsData(10).to_json())
 
 api.add_resource(Art, "/arts", "/arts/<art_id>")
 api.add_resource(ArtSuggestion, "/art-suggestions/<session_id>")
+api.add_resource(ArtRandom, "/art-randoms")
