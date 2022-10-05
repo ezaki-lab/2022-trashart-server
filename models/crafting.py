@@ -42,6 +42,7 @@ class Crafting(Data):
                 "user_id": ObjectId(self.user_id),
                 "title": self.title,
                 "hashtags": self.hashtags,
+                "image_id": self.image_id,
                 "image_url": self.image_url,
                 "created_at": self.created_at
             })
@@ -52,6 +53,7 @@ class Crafting(Data):
             "user_id": self.user_id,
             "title": self.title,
             "hashtags": self.hashtags,
+            "image_id": self.image_id,
             "image_url": self.image_url,
             "create_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -63,6 +65,7 @@ class Crafting(Data):
 
             self.title = r["title"] if "title" in r else ""
             self.hashtags = r["hashtags"] if "hashtags" in r else []
+            self.image_id = r["image_id"] if "image_id" in r else ""
             self.image_url = r["image_url"] if "image_url" in r else ""
             self.created_at = r["created_at"] if "created_at" in r else None
 
@@ -113,6 +116,7 @@ class Craftings(Data):
                     "user_id": str(r["user_id"]) if "user_id" in r else "",
                     "title": r["title"] if "title" in r else "",
                     "hashtags": r["hashtags"] if "hashtags" in r else [],
+                    "image_id": r["image_id"] if "image_id" in r else "",
                     "image_url": r["image_url"] if "image_url" in r else "",
                     "created_at": created_at
                 })
