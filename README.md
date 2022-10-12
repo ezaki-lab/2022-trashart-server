@@ -6,6 +6,10 @@
 
 [Webアプリ（フロントエンド）のリポジトリはこちらから](https://github.com/ezaki-lab/2022-trashart)
 
+[プラスチック判別モデル（機械学習）のリポジトリはこちらから](https://github.com/ezaki-lab/2022-trashart-separate-ml)
+
+[プラスチック判別機（ハードウェア）のリポジトリはこちらから](https://github.com/ezaki-lab/2022-trashart-separate-arduino)
+
 ## URL
 ```https://ezaki-lab.cloud/~trashart/api/```
 
