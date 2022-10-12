@@ -7,9 +7,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 from models.data import Data
 from models.art import Art
+from utils.image_white_counter import ImageWhiteCounter
 from utils.similarity import Similarity
 
 class ArtSuggester(Data):
+    cap_size: float = (14 ** 2) * math.pi
+
     def __init__(self, session_id: str):
         self.session_id = session_id
         self.arts: list[Art] = []
@@ -58,7 +61,7 @@ class ArtSuggester(Data):
                     "storage/arts/{}/attentions".format(art.art_id)
                 )
                 futures.append(
-                    e.submit(self.__calc_score, attentions)
+                    e.submit(self.__calc_score, attentions, art.cap_area)
                 )
 
             for i, f in enumerate(futures):
@@ -81,16 +84,33 @@ class ArtSuggester(Data):
     def __get_art_attentions_path(self, art_id: int) -> list[str]:
         return os.listdir("storage/arts/{}/attentions".format(art_id))
 
-    def __calc_score(self, attentions: list[np.ndarray]) -> float:
+    def __calc_score(self, attentions: list[np.ndarray], art_cap_area: float) -> float:
         score = 0.0
+        picked_cap_area = 3000.0
+
         for img in self.materials:
             for att in attentions:
+                area_diff = self.__diff_area(att, art_cap_area, img, picked_cap_area)
+
+                # 大きさが全然違う場合は、このループのスコアを0に (ループスキップ)
+                if math.sqrt(area_diff) >= 50:
+                    continue
+
                 try:
                     score += self.__calc_sole_score(img, att)
                 except:
                     continue
 
         return score
+
+    def __diff_area(self, att_img: np.ndarray, att_cap_area: float, material_img: np.ndarray, picked_cap_area: float) -> float:
+        try:
+            return math.fabs(
+                ImageWhiteCounter(material_img).get_sum() / picked_cap_area
+                - ImageWhiteCounter(att_img).get_sum() / att_cap_area
+            ) * self.cap_size
+        except:
+            return 10000.0
 
     def __calc_sole_score(self, img: np.ndarray, att: np.ndarray) -> float:
         sim = self.__similarity.calc(img, att)

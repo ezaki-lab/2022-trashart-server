@@ -2,7 +2,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 from models.data import Data
 from utils.random import generate_str
-from utils.base64_to_file import Base64_to_file
+from utils.base64_to_file import Base64ToFile
 
 class SharePhoto(Data):
     def __init__(self, photo_id: str=None):
@@ -43,5 +43,5 @@ class SharePhoto(Data):
             self.crafting_id = str(r["crafting_id"]) if "crafting_id" in r else ""
 
     def __save_img(self, img_b64: str) -> str:
-        converter = Base64_to_file(img_b64)
+        converter = Base64ToFile(img_b64)
         return converter.save("storage/photos/", f"{self.photo_id}.png")

@@ -10,6 +10,7 @@ import numpy as np
 import shutil
 
 import common
+from utils.image_size_normalizer import ImageSizeNormalizer
 from utils.random import generate_str
 
 """
@@ -60,13 +61,54 @@ def main():
             shutil.copytree("storage/arts_tmp/" + art[1], "storage/arts/" + art_id)
 
             ###################################
-            #  DBに登録する情報
+            #  画像を読み込み
             ###################################
             original_img = cv2.imread("storage/arts/" + art_id + "/art.png")
             cv2.imwrite("storage/arts/" + art_id + "/art.webp", original_img)
-            height, width, _ = original_img.shape
 
             cap_img = cv2.imread("storage/arts/" + art_id + "/cap.png")
+            art_bin = cv2.imread("storage/arts/" + art_id + "/art_bin.png")
+            art_att = cv2.imread("storage/arts/" + art_id + "/art_attention.png")
+
+            # art_bin.png と art_attention.png のサイズが異なるなら、統一
+            if art_bin.shape != art_att.shape:
+                art_att = cv2.resize(
+                    art_att,
+                    (art_bin.shape[1], art_bin.shape[0])
+                )
+                cv2.imwrite("storage/arts/" + art_id + "/art_attention.png", art_att)
+
+            ###################################
+            ##  画像サイズを標準化
+            ###################################
+            art_bin_nor = ImageSizeNormalizer(art_bin, 1000)
+            art_bin_ratio = art_bin_nor.ratio
+            cap_img_ratio = art_bin_ratio * (art_bin.shape[0] / original_img.shape[0])
+            art_bin = art_bin_nor.img
+
+            art_att = cv2.resize(
+                art_att,
+                (
+                    int(art_att.shape[1] * art_bin_ratio),
+                    int(art_att.shape[0] * art_bin_ratio)
+                )
+            )
+            cap_img = cv2.resize(
+                cap_img,
+                (
+                    int(cap_img.shape[1] * cap_img_ratio),
+                    int(cap_img.shape[0] * cap_img_ratio)
+                )
+            )
+
+            cv2.imwrite("storage/arts/" + art_id + "/cap.png", cap_img)
+            cv2.imwrite("storage/arts/" + art_id + "/art_bin.png", art_bin)
+            cv2.imwrite("storage/arts/" + art_id + "/art_attention.png", art_att)
+
+            ###################################
+            #  DBに登録する情報
+            ###################################
+            height, width, _ = art_bin.shape
 
             hsv = cv2.cvtColor(cap_img, cv2.COLOR_BGR2HSV)
 
@@ -78,17 +120,6 @@ def main():
                 mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             cap_area = cv2.contourArea(contours[0])
-
-            ###################################
-            #  製作補助画像
-            ###################################
-            art_bin = cv2.imread("storage/arts/" + art_id + "/art_bin.png")
-            art_att = cv2.imread("storage/arts/" + art_id + "/art_attention.png")
-
-            # art_bin.png と art_attention.png のサイズが異なるなら、統一
-            if art_bin.shape != art_att.shape:
-                art_att = cv2.resize(art_att, dsize=(art_bin.shape[1], art_bin.shape[0]))
-                cv2.imwrite("storage/arts/" + art_id + "/art_attention.png", art_att)
 
             art_support = np.zeros((art_bin.shape[0], art_bin.shape[1], 4), np.uint8)
 

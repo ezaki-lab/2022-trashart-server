@@ -5,6 +5,7 @@ import os
 from base64 import b64decode
 
 from common import config
+from utils.image_size_normalizer import ImageSizeNormalizer
 from utils.random import generate_str
 
 class Material:
@@ -39,10 +40,8 @@ class MaterialSeparator:
             cv2.IMREAD_ANYCOLOR
         )
 
-        # 縦幅が 1000 になるようにリサイズ
-        self.original_img = self.__scale_to_height(
-            self.original_img, 1000
-        )
+        # 縦横大きいほうが1000になるように調整
+        self.original_img = ImageSizeNormalizer(self.original_img, 1000).img
 
         self.height, self.width = self.original_img.shape[:2]
 
@@ -133,8 +132,3 @@ class MaterialSeparator:
                 m.x:m.x+m.width
             ]
             cv2.imwrite(filepath, img)
-
-    def __scale_to_height(self, img: np.ndarray, height: int) -> np.ndarray:
-        h, w = img.shape[:2]
-        # TODO: 横, 縦 で正しくリサイズできるのかわからないので調べておく
-        return cv2.resize(img, (int(w * height / h), height))
