@@ -9,7 +9,7 @@ import os
 from base64 import b64decode
 from utils.random import generate_str
 
-class Base64_to_file:
+class Base64ToFile:
     def __init__(self, base64_str: str):
         base64_str_splitted = base64_str.split(",", 1)
         # Content-Type
