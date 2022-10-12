@@ -22,5 +22,4 @@ class Similarity():
 
     def __scale_to_width(self, img: np.ndarray, width: int) -> np.ndarray:
         h, w = img.shape[:2]
-        # TODO: 横, 縦 で正しくリサイズできるのかわからないので調べておく
         return cv2.resize(img, (width, int(h * width / w)))
