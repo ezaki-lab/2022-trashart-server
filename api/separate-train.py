@@ -38,36 +38,23 @@ class Separate(Resource):
         self.material_name = generate_str(8)
         filename = self.__generate_file_name(json["plastic_type"])
 
+        led_names = [
+            ["image_lighted", "lighted"],
+            ["image_led850", "850"],
+            ["image_led940", "940"]
+        ]
+
         try:
-            saver = Base64ToFile(json["image_lighted"])
-            saver.save(
-                self.__generate_folder_name(
-                    color_map[json["plastic_color"]],
-                    json["plastic_color"],
-                    "lighted"
-                ),
-                filename
-            )
-
-            saver = Base64ToFile(json["image_led850"])
-            saver.save(
-                self.__generate_folder_name(
-                    color_map[json["plastic_color"]],
-                    json["plastic_color"],
-                    "850"
-                ),
-                filename
-            )
-
-            saver = Base64ToFile(json["image_led940"])
-            saver.save(
-                self.__generate_folder_name(
-                    color_map[json["plastic_color"]],
-                    json["plastic_color"],
-                    "940"
-                ),
-                filename
-            )
+            for led in led_names:
+                saver = Base64ToFile(json[led[0]])
+                saver.save(
+                    self.__generate_folder_name(
+                        color_map[json["plastic_color"]],
+                        json["plastic_color"],
+                        led[1]
+                    ),
+                    filename
+                )
 
         except ValueError:
             return res.bad_request({
@@ -78,7 +65,7 @@ class Separate(Resource):
                 "message": "This color name is not valid."
             })
 
-        return res.ok()
+        return res.ok({})
 
     def __generate_folder_name(self, color_id: str, color_name: str, led_name) -> str:
         base_folder = "storage/separate-train"
