@@ -1,4 +1,2 @@
-API_URL: https://ezaki-lab.cloud/~trashart/api/
-
 includes:
 - secret.yaml
