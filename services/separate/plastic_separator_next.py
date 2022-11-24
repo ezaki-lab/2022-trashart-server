@@ -27,7 +27,7 @@ class PlasticSeparatorNext:
 
     def __init__(self, img_lighted_b64: str, img_led850_b64: str, img_led940_b64: str):
         self.results: list[Plastic] = [None] * len(self.plastic_names)
-        self.model: any = config["PLASTIC_CLASSIFICATION_MODEL"]
+        self.model: any = config["PLASTIC_CLASSIFICATION_NEXT_MODEL"]
         self.color: str = None
 
         # Base64形式の画像データをOpenCV画像データに変換

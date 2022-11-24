@@ -18,3 +18,4 @@ with open("./config.yaml") as f:
         del config["includes"]
 
 config["PLASTIC_CLASSIFICATION_MODEL"] = load_model("ml_models/plastic-classification.h5")
+config["PLASTIC_CLASSIFICATION_NEXT_MODEL"] = load_model("ml_models/plastic-classification-next.h5")
