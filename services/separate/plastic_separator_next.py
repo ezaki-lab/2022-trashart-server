@@ -40,16 +40,21 @@ class PlasticSeparatorNext:
             raise ValueError("These base64 image is not valid for separate.")
 
     def separate(self):
-        self.results: list[Plastic] = [None] * len(self.plastic_names)
+        self.results: list[Plastic] = []
 
-        predicts = self.__predict()
+        predicts = np.argmax(self.__predict(), axis=1)
+
         u, counts = np.unique(predicts, return_counts=True, axis=0)
 
         sorted_indices = np.argsort(counts)[::-1]
         sorted_results = u[sorted_indices]
 
-        for i, r in enumerate(sorted_results):
-            self.results[i] = Plastic(self.plastic_names[r[0]], counts[i] / self.cut_num)
+        counts = np.sort(counts)[::-1]
+
+        for i, p_no in enumerate(sorted_results):
+            self.results.append(
+                Plastic(self.plastic_names[p_no], counts[i] / self.cut_num)
+            )
 
     def to_json(self) -> dict:
         results = [None] * len(self.results)
@@ -62,8 +67,7 @@ class PlasticSeparatorNext:
 
         return {
             "results": results,
-            "image": self.__save_img(self.img_lighted),
-            "color": self.color
+            "image": self.__save_img(self.img_white),
         }
 
     def __predict(self) -> int:
@@ -80,8 +84,7 @@ class PlasticSeparatorNext:
     def __format_for_predict(self, hue: np.ndarray, lum: np.ndarray) -> np.ndarray:
         info = np.concatenate([
             hue,
-            lum[0],
-            lum[1]
+            lum
         ])
 
         data = np.zeros((1,768), dtype=np.int32)
