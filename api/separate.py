@@ -55,10 +55,10 @@ class SeparateNext(Resource):
                 json["image_lighted"],
                 json["image_led850"],
                 json["image_led940"],
-                9,
-                515,
-                695,
-                1008,
+                0,
+                587,
+                638,
+                862,
                 128
             )
         except ValueError:

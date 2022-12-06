@@ -65,9 +65,12 @@ class PlasticSeparatorNext:
                 "possibility": r.possibility
             }
 
+        self.__save_img(self.img_white)
+        cropped_img = self.img_white[self.start_y:self.start_y+self.height, self.start_x:self.start_x+self.width]
+
         return {
             "results": results,
-            "image": self.__save_img(self.img_white),
+            "image": self.__save_img(cropped_img),
         }
 
     def __predict(self) -> int:
@@ -170,7 +173,7 @@ class PlasticSeparatorNext:
 
     def __save_img(self, img: np.ndarray) -> np.ndarray:
         random_id = generate_str(8)
-        save_folder = "storage/separates/"
+        save_folder = "storage/photos/"
         filepath = f"{save_folder}{random_id}.webp"
 
         # 保存フォルダーがなければ作成
