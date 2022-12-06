@@ -153,6 +153,18 @@ class PlasticSeparatorNext:
         hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
         return cv2.split(hls)
 
+    def __get_histogram_array(self, arr: np.ndarray, max_num: int) -> np.ndarray:
+        """
+        ヒストグラムの各値を計算する
+        """
+
+        hist = np.zeros(max_num + 1, dtype=np.int32)
+
+        for i in range(max_num + 1):
+            hist[i] = arr[arr == i].shape[0]
+
+        return hist
+
     def __save_img(self, img: np.ndarray) -> np.ndarray:
         random_id = generate_str(8)
         save_folder = "storage/separates/"
