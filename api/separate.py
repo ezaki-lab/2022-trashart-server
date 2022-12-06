@@ -54,7 +54,12 @@ class SeparateNext(Resource):
             separator = PlasticSeparatorNext(
                 json["image_lighted"],
                 json["image_led850"],
-                json["image_led940"]
+                json["image_led940"],
+                9,
+                515,
+                695,
+                1008,
+                128
             )
         except ValueError:
             return res.bad_request({
