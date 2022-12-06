@@ -3,7 +3,6 @@ import numpy as np
 from base64 import b64decode
 import os
 from common import config
-from utils.image_color import ImageColorGuesser
 from utils.random import generate_str
 
 class Plastic:
@@ -12,39 +11,45 @@ class Plastic:
         self.possibility = possibility
 
 class PlasticSeparatorNext:
-    plastic_names = ["PP", "PE"]
+    plastic_names = ["PP", "PE", "PET", "PS", "ABS", "PVC"]
 
-    color_name_map = {
-        "white": 0,
-        "gray": 1,
-        "black": 2,
-        "red": 3,
-        "brown": 4,
-        "yellow": 5,
-        "green": 6,
-        "blue": 7
-    }
-
-    def __init__(self, img_lighted_b64: str, img_led850_b64: str, img_led940_b64: str):
-        self.results: list[Plastic] = [None] * len(self.plastic_names)
+    def __init__(self, img_white_b64: str, img_850_b64: str, img_940_b64: str, start_x: int, start_y: int, width: int, height: int, img_size: int):
+        self.results: list[Plastic] = []
         self.model: any = config["PLASTIC_CLASSIFICATION_NEXT_MODEL"]
-        self.color: str = None
+        self.start_x = start_x
+        self.start_y = start_y
+        self.width = width
+        self.height = height
+        self.img_size = img_size
 
         # Base64形式の画像データをOpenCV画像データに変換
         try:
-            self.img_lighted = self.__load_b64(img_lighted_b64)
-            self.img_led850 = self.__load_b64(img_led850_b64)
-            self.img_led940 = self.__load_b64(img_led940_b64)
+            self.img_white = self.__load_b64(img_white_b64)
+            self.img_850 = self.__load_b64(img_850_b64)
+            self.img_940 = self.__load_b64(img_940_b64)
         except:
             raise ValueError("These base64 image is not valid.")
 
-        self.__crop_128()
+        self.imgs_white = self.__cut_image(self.img_white)
+        self.imgs_850 = self.__cut_image(self.img_850)
+        self.imgs_940 = self.__cut_image(self.img_940)
+
+        self.cut_num = len(self.imgs_white)
+
+        if self.cut_num != len(self.imgs_850) or self.cut_num != len(self.imgs_940):
+            raise ValueError("These base64 image is not valid for separate.")
 
     def separate(self):
-        guesser = ImageColorGuesser(self.img_lighted)
-        self.color = guesser.get_color()
+        self.results: list[Plastic] = [None] * len(self.plastic_names)
 
-        self.__predict()
+        predicts = self.__predict()
+        u, counts = np.unique(predicts, return_counts=True, axis=0)
+
+        sorted_indices = np.argsort(counts)[::-1]
+        sorted_results = u[sorted_indices]
+
+        for i, r in enumerate(sorted_results):
+            self.results[i] = Plastic(self.plastic_names[r[0]], counts[i] / self.cut_num)
 
     def to_json(self) -> dict:
         results = [None] * len(self.results)
@@ -61,52 +66,46 @@ class PlasticSeparatorNext:
             "color": self.color
         }
 
-    def __predict(self) -> np.ndarray:
-        lum_850 = self.__calc_luminance(self.img_led850)
-        lum_940 = self.__calc_luminance(self.img_led940)
+    def __predict(self) -> int:
+        input_data = np.zeros((self.cut_num, 768), dtype=np.int32)
 
-        input_data = self.__format_for_predict(
-            self.color,
-            lum_850,
-            lum_940
-        )
+        for i in range(self.cut_num):
+            input_data[i] = self.__format_for_predict(
+                self.__calc_hue(i),
+                self.__calc_luminance(i)
+            )
 
-        results = self.model.predict(input_data)[0]
+        return self.model.predict(input_data)
 
-        for i, name in enumerate(self.plastic_names):
-            self.results[i] = Plastic(name, float(results[i]))
-
-        self.results.sort(key=lambda x: x.possibility, reverse=True)
-
-    def __format_for_predict(self, color: str, lum_850: np.ndarray, lum_940: np.ndarray) -> np.ndarray:
-        color_no = self.color_name_map[color]
-
+    def __format_for_predict(self, hue: np.ndarray, lum: np.ndarray) -> np.ndarray:
         info = np.concatenate([
-            [color_no],
-            lum_850,
-            lum_940
+            hue,
+            lum[0],
+            lum[1]
         ])
 
-        data = np.zeros((1,513), dtype=np.int32)
+        data = np.zeros((1,768), dtype=np.int32)
         data[0] = info
 
         return data
 
-    def __crop_128(self):
-        # 真ん中の128x128を切り取る
-        size = 128
+    def __cut_image(self, img: np.ndarray) -> list:
+        img = img[self.start_y:self.start_y+self.height, self.start_x:self.start_x+self.width]
 
-        self.img_lighted = self.__crop(self.img_lighted, size)
-        self.img_led850 = self.__crop(self.img_led850, size)
-        self.img_led940 = self.__crop(self.img_led940, size)
+        # 各グリッド数
+        w_num = img.shape[1] // self.img_size
+        h_num = img.shape[0] // self.img_size
 
-    def __crop(self, img: np.ndarray, size: int) -> np.ndarray:
-        h, w = img.shape[:2]
+        imgs: list[np.ndarray] = [None] * (w_num * h_num)
 
-        x = (w - size) // 2
-        y = (h - size) // 2
+        for i in range(w_num):
+            for j in range(h_num):
+                crop_start_x = i * self.img_size
+                crop_start_y = j * self.img_size
 
-        return img[y:y+size, x:x+size]
+                imgs[i * h_num + j] = img[crop_start_y:crop_start_y+self.img_size, crop_start_x:crop_start_x+self.img_size]
+
+        return imgs
 
     def __load_b64(self, b64: str) -> np.ndarray:
         # Base64 -> OpenCV画像データ
@@ -120,16 +119,39 @@ class PlasticSeparatorNext:
             cv2.IMREAD_ANYCOLOR
         )
 
-    def __calc_luminance(self, img: np.ndarray) -> np.ndarray:
-        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
-        _,l,_ = cv2.split(hls)
+    def __calc_hue(self, index: int) -> np.ndarray:
+        """
+        画像の色相ヒストグラムを計算する
+        """
+
+        h,l,s = self.__calc_hls(self.imgs_white[index])
+        raveled = h.ravel()
+        return self.__get_histogram_array(raveled, 255)
+
+    def __calc_luminance(self, index: int) -> np.ndarray:
+        """
+        画像の輝度ヒストグラムを計算する (850nm, 940nm)
+        """
+
+        # 850nm
+        h,l,s = self.__calc_hls(self.imgs_850[index])
         raveled = l.ravel()
+        led850_count = self.__get_histogram_array(raveled, 255)
 
-        l_count = np.zeros(256, dtype=np.int32)
-        for i in range(256):
-            l_count[i] = raveled[raveled == i].shape[0]
+        # 940nm
+        h,l,s = self.__calc_hls(self.imgs_940[index])
+        raveled = l.ravel()
+        led940_count = self.__get_histogram_array(raveled, 255)
 
-        return l_count
+        return np.concatenate([led850_count, led940_count])
+
+    def __calc_hls(self, img: np.ndarray) -> tuple:
+        """
+        画像の色相、輝度、彩度を計算する
+        """
+
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+        return cv2.split(hls)
 
     def __save_img(self, img: np.ndarray) -> np.ndarray:
         random_id = generate_str(8)
