@@ -5,10 +5,12 @@ import os
 from common import config
 from utils.random import generate_str
 
+
 class Plastic:
     def __init__(self, p_name: str, possibility: float):
         self.name = p_name
         self.possibility = possibility
+
 
 class PlasticSeparatorNext:
     plastic_names = ["PP", "PE", "PET", "PS", "ABS", "PVC"]
@@ -66,7 +68,8 @@ class PlasticSeparatorNext:
             }
 
         self.__save_img(self.img_white)
-        cropped_img = self.img_white[self.start_y:self.start_y+self.height, self.start_x:self.start_x+self.width]
+        cropped_img = self.img_white[self.start_y:self.start_y +
+                                     self.height, self.start_x:self.start_x+self.width]
 
         return {
             "results": results,
@@ -86,14 +89,15 @@ class PlasticSeparatorNext:
 
     def __format_for_predict(self, hue: np.ndarray, lums: list) -> np.ndarray:
         data = np.zeros((1, 3, 256), dtype=np.int32)
-        data[0] = hue
-        data[1] = lums[0]
-        data[2] = lums[1]
+        data[0][0] = hue
+        data[0][1] = lums[0]
+        data[0][2] = lums[1]
 
         return data
 
     def __cut_image(self, img: np.ndarray) -> list:
-        img = img[self.start_y:self.start_y+self.height, self.start_x:self.start_x+self.width]
+        img = img[self.start_y:self.start_y+self.height,
+                  self.start_x:self.start_x+self.width]
 
         # 各グリッド数
         w_num = img.shape[1] // self.img_size
@@ -106,7 +110,8 @@ class PlasticSeparatorNext:
                 crop_start_x = i * self.img_size
                 crop_start_y = j * self.img_size
 
-                imgs[i * h_num + j] = img[crop_start_y:crop_start_y+self.img_size, crop_start_x:crop_start_x+self.img_size]
+                imgs[i * h_num + j] = img[crop_start_y:crop_start_y +
+                                          self.img_size, crop_start_x:crop_start_x+self.img_size]
 
         return imgs
 
@@ -127,7 +132,7 @@ class PlasticSeparatorNext:
         画像の色相ヒストグラムを計算する
         """
 
-        h,l,s = self.__calc_hls(self.imgs_white[index])
+        h, l, s = self.__calc_hls(self.imgs_white[index])
         raveled = h.ravel()
         return self.__get_histogram_array(raveled, 255)
 
@@ -137,12 +142,12 @@ class PlasticSeparatorNext:
         """
 
         # 850nm
-        h,l,s = self.__calc_hls(self.imgs_850[index])
+        h, l, s = self.__calc_hls(self.imgs_850[index])
         raveled = l.ravel()
         led850_count = self.__get_histogram_array(raveled, 255)
 
         # 940nm
-        h,l,s = self.__calc_hls(self.imgs_940[index])
+        h, l, s = self.__calc_hls(self.imgs_940[index])
         raveled = l.ravel()
         led940_count = self.__get_histogram_array(raveled, 255)
 
