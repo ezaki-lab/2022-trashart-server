@@ -74,7 +74,7 @@ class PlasticSeparatorNext:
         }
 
     def __predict(self) -> int:
-        input_data = np.zeros((self.cut_num, 768), dtype=np.int32)
+        input_data = np.zeros((self.cut_num, 3, 256), dtype=np.int32)
 
         for i in range(self.cut_num):
             input_data[i] = self.__format_for_predict(
@@ -84,14 +84,11 @@ class PlasticSeparatorNext:
 
         return self.model.predict(input_data)
 
-    def __format_for_predict(self, hue: np.ndarray, lum: np.ndarray) -> np.ndarray:
-        info = np.concatenate([
-            hue,
-            lum
-        ])
-
-        data = np.zeros((1,768), dtype=np.int32)
-        data[0] = info
+    def __format_for_predict(self, hue: np.ndarray, lums: list) -> np.ndarray:
+        data = np.zeros((1, 3, 256), dtype=np.int32)
+        data[0] = hue
+        data[1] = lums[0]
+        data[2] = lums[1]
 
         return data
 
@@ -134,7 +131,7 @@ class PlasticSeparatorNext:
         raveled = h.ravel()
         return self.__get_histogram_array(raveled, 255)
 
-    def __calc_luminance(self, index: int) -> np.ndarray:
+    def __calc_luminance(self, index: int) -> list:
         """
         画像の輝度ヒストグラムを計算する (850nm, 940nm)
         """
@@ -149,7 +146,7 @@ class PlasticSeparatorNext:
         raveled = l.ravel()
         led940_count = self.__get_histogram_array(raveled, 255)
 
-        return np.concatenate([led850_count, led940_count])
+        return [led850_count, led940_count]
 
     def __calc_hls(self, img: np.ndarray) -> tuple:
         """
